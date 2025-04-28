@@ -1,0 +1,3979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NOARZ</title>
+    <!-- GitHub API Integration -->
+    <script src="github-config.js"></script>
+    <script src="github-api.js"></script>
+    <script src="data-manager.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap');
+
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            background-color: #0a0a14; /* Dark JJK-style background */
+            background-image: linear-gradient(to bottom, #0a0a14, #1a1a2e);
+            overflow: hidden;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .ground {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            height: 100px;
+            background-color: #1a1a2e; /* Dark JJK-style ground */
+            background-image: linear-gradient(to top, #0a0a14, #1a1a2e);
+            z-index: 1;
+            box-shadow: 0 -5px 15px rgba(72, 52, 212, 0.2);
+        }
+
+        .grass {
+            position: fixed;
+            bottom: 100px;
+            width: 100%;
+            height: 5px;
+            background-color: #4834d4; /* JJK-style cursed energy line */
+            box-shadow: 0 0 10px #4834d4, 0 0 20px #4834d4;
+            z-index: 2;
+        }
+
+        .fox {
+            position: absolute;
+            font-size: 60px;
+            bottom: 120px; /* Position above the grass */
+            left: 0;
+            z-index: 10;
+            transform-origin: center;
+            animation: run-cycle 0.5s infinite steps(2);
+            cursor: pointer;
+            transition: filter 0.3s ease;
+            filter: drop-shadow(0 0 5px rgba(72, 52, 212, 0.5));
+        }
+
+        .fox:hover {
+            filter: drop-shadow(0 0 15px rgba(72, 52, 212, 0.8)) drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
+            animation-play-state: paused;
+        }
+
+        /* Fox cursed energy aura */
+        .fox::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 80px;
+            height: 80px;
+            transform: translate(-50%, -40%);
+            background: radial-gradient(circle, rgba(72, 52, 212, 0.2) 0%, rgba(72, 52, 212, 0) 70%);
+            border-radius: 50%;
+            z-index: -1;
+            animation: pulse-aura-small 2s infinite alternate;
+        }
+
+        @keyframes run-cycle {
+            0% {
+                transform: translateY(0) scaleY(1);
+            }
+            50% {
+                transform: translateY(-10px) scaleY(0.95);
+            }
+            100% {
+                transform: translateY(0) scaleY(1);
+            }
+        }
+
+        @keyframes pulse-aura-small {
+            0% {
+                transform: translate(-50%, -40%) scale(1);
+                opacity: 0.2;
+            }
+            100% {
+                transform: translate(-50%, -40%) scale(1.3);
+                opacity: 0.1;
+            }
+        }
+
+        /* JJK-themed environment elements */
+        .cursed-spirit {
+            position: fixed;
+            font-size: 40px;
+            color: rgba(255, 255, 255, 0.1);
+            z-index: 0;
+            filter: blur(1px) drop-shadow(0 0 8px rgba(72, 52, 212, 0.5));
+            animation: float-spirit 30s linear infinite;
+            opacity: 0.6;
+        }
+
+        .cursed-spirit:nth-child(1) {
+            top: 80px;
+            left: 10%;
+            animation-duration: 35s;
+            transform: rotate(15deg);
+        }
+
+        .cursed-spirit:nth-child(2) {
+            top: 120px;
+            left: 40%;
+            animation-duration: 45s;
+            transform: rotate(-10deg);
+        }
+
+        .cursed-spirit:nth-child(3) {
+            top: 60px;
+            left: 70%;
+            animation-duration: 30s;
+            transform: rotate(5deg);
+        }
+
+        @keyframes float-spirit {
+            from {
+                transform: translateX(0) translateY(0);
+            }
+            50% {
+                transform: translateX(calc(50vw)) translateY(20px);
+            }
+            to {
+                transform: translateX(calc(100vw + 100px)) translateY(0);
+            }
+        }
+
+        .cloud:nth-child(1) {
+            top: 80px;
+            left: 10%;
+            animation-duration: 35s;
+        }
+
+        .cloud:nth-child(2) {
+            top: 120px;
+            left: 40%;
+            animation-duration: 45s;
+        }
+
+        .cloud:nth-child(3) {
+            top: 60px;
+            left: 70%;
+            animation-duration: 30s;
+        }
+
+        @keyframes float {
+            from {
+                transform: translateX(0);
+            }
+            to {
+                transform: translateX(calc(100vw + 100px));
+            }
+        }
+
+        .title {
+            position: fixed;
+            top: 20px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            color: #fff;
+            font-size: 32px;
+            font-weight: bold;
+            z-index: 100;
+            text-shadow: 0 0 10px #4834d4, 0 0 20px #4834d4;
+            letter-spacing: 2px;
+        }
+
+        .dialogue-box {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            width: 80%;
+            max-width: 600px;
+            background-color: rgba(10, 10, 20, 0.9);
+            border: 2px solid #4834d4;
+            border-radius: 5px;
+            padding: 20px;
+            box-shadow: 0 0 15px rgba(72, 52, 212, 0.5), 0 0 30px rgba(72, 52, 212, 0.3);
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 0.3s, transform 0.3s;
+            pointer-events: none;
+            color: white;
+            display: flex;
+        }
+
+        .dialogue-box.active {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+            pointer-events: auto;
+        }
+
+        .fox-portrait {
+            width: 80px;
+            height: 80px;
+            background-color: rgba(72, 52, 212, 0.2);
+            border-radius: 50%;
+            margin-right: 20px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            border: 2px solid #4834d4;
+            box-shadow: 0 0 10px rgba(72, 52, 212, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .fox-portrait::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at center, rgba(72, 52, 212, 0.3) 0%, transparent 70%);
+            animation: pulse-portrait 2s infinite alternate;
+        }
+
+        @keyframes pulse-portrait {
+            0% {
+                opacity: 0.3;
+            }
+            100% {
+                opacity: 0.6;
+            }
+        }
+
+        .dialogue-content {
+            flex-grow: 1;
+        }
+
+        .dialogue-text {
+            margin-bottom: 20px;
+            line-height: 1.5;
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.9);
+            text-shadow: 0 0 2px rgba(255, 255, 255, 0.5);
+        }
+
+        .dialogue-name {
+            color: #4834d4;
+            font-weight: bold;
+            font-size: 20px;
+            margin-bottom: 10px;
+            text-shadow: 0 0 5px rgba(72, 52, 212, 0.5);
+            letter-spacing: 1px;
+        }
+
+        .dialogue-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .dialogue-option {
+            padding: 8px 15px;
+            background-color: rgba(72, 52, 212, 0.2);
+            color: white;
+            border: 1px solid #4834d4;
+            border-radius: 3px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+            width: fit-content;
+            box-shadow: 0 0 5px rgba(72, 52, 212, 0.3);
+        }
+
+        .dialogue-option:hover {
+            background-color: rgba(72, 52, 212, 0.5);
+            box-shadow: 0 0 10px rgba(72, 52, 212, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .password-input {
+            display: none;
+            margin-top: 15px;
+        }
+
+        .password-input input {
+            padding: 8px;
+            border-radius: 3px;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid #4834d4;
+            margin-right: 10px;
+            box-shadow: 0 0 5px rgba(72, 52, 212, 0.3);
+        }
+
+        .password-input button {
+            padding: 8px 15px;
+            background-color: rgba(72, 52, 212, 0.3);
+            color: white;
+            border: 1px solid #4834d4;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 0 5px rgba(72, 52, 212, 0.3);
+        }
+
+        .password-input button:hover {
+            background-color: rgba(72, 52, 212, 0.5);
+            box-shadow: 0 0 10px rgba(72, 52, 212, 0.5);
+            transform: translateY(-2px);
+        }
+
+        /* Domain Expansion Effects - Jujutsu Kaisen Style */
+        .domain-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0);
+            z-index: 200;
+            pointer-events: none;
+            transition: background-color 2.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .domain-overlay.active {
+            background-color: rgba(0, 0, 0, 0.92);
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" stroke="%234834d4" stroke-width="0.5" fill="none" opacity="0.3"/></svg>');
+            background-size: 100px 100px;
+        }
+
+        .domain-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 201;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 1s;
+            background: radial-gradient(circle, rgba(72, 52, 212, 0.4) 1px, transparent 1px);
+            background-size: 30px 30px;
+            mix-blend-mode: screen;
+        }
+
+        .domain-particles.active {
+            opacity: 0.7;
+            animation: rotate-particles 20s linear infinite;
+        }
+
+        @keyframes rotate-particles {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .floating-fox {
+            position: fixed;
+            font-size: 100px;
+            top: 120%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 201;
+            transition: top 2s cubic-bezier(0.34, 1.56, 0.64, 1), filter 1s ease;
+            filter: drop-shadow(0 0 15px rgba(72, 52, 212, 0.5));
+        }
+
+        .floating-fox.active {
+            top: 50%;
+        }
+
+        .floating-fox.powered {
+            filter: drop-shadow(0 0 25px rgba(72, 52, 212, 0.8)) drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
+        }
+
+        /* JJK-style cursed energy aura */
+        .fox-aura {
+            position: fixed;
+            width: 200px;
+            height: 200px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 200;
+            background: radial-gradient(circle, rgba(72, 52, 212, 0.4) 0%, rgba(72, 52, 212, 0) 70%);
+            border-radius: 50%;
+            opacity: 0;
+            transition: opacity 1s, transform 2s;
+            box-shadow: 0 0 30px rgba(72, 52, 212, 0.3);
+        }
+
+        .fox-aura.active {
+            opacity: 1;
+            animation: pulse-aura 2s infinite alternate;
+        }
+
+        /* Additional cursed energy rings */
+        .fox-aura::before, .fox-aura::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0.5;
+            transition: opacity 1s;
+        }
+
+        .fox-aura::before {
+            width: 220px;
+            height: 220px;
+            border: 1px solid rgba(72, 52, 212, 0.3);
+            animation: rotate-ring 10s linear infinite;
+        }
+
+        .fox-aura::after {
+            width: 250px;
+            height: 250px;
+            border: 1px solid rgba(72, 52, 212, 0.2);
+            animation: rotate-ring 15s linear infinite reverse;
+        }
+
+        @keyframes rotate-ring {
+            0% {
+                transform: translate(-50%, -50%) rotate(0deg);
+            }
+            100% {
+                transform: translate(-50%, -50%) rotate(360deg);
+            }
+        }
+
+        .hand-gesture {
+            position: fixed;
+            font-size: 70px;
+            bottom: 50%;
+            left: 50%;
+            transform: translate(-50%, 50%) scale(0);
+            z-index: 202;
+            opacity: 0;
+            transition: transform 0.5s, opacity 0.5s;
+            filter: drop-shadow(0 0 15px rgba(204, 51, 255, 0.8));
+        }
+
+        .hand-gesture.active {
+            opacity: 1;
+            transform: translate(-50%, 50%) scale(1);
+        }
+
+        .hand-gesture.prepare {
+            animation: hand-prepare 1s forwards;
+        }
+
+        .hand-gesture.launch {
+            animation: hand-launch 0.5s forwards;
+        }
+
+        @keyframes hand-prepare {
+            0% {
+                transform: translate(-50%, 50%) scale(1) rotate(0deg);
+            }
+            50% {
+                transform: translate(-50%, 50%) scale(1.2) rotate(-20deg);
+            }
+            100% {
+                transform: translate(-50%, 50%) scale(1.1) rotate(0deg);
+            }
+        }
+
+        @keyframes hand-launch {
+            0% {
+                transform: translate(-50%, 50%) scale(1.1) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, 50%) scale(1.5) rotate(20deg);
+                opacity: 0;
+            }
+        }
+
+        @keyframes pulse-aura {
+            0% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0.4;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1.3);
+                opacity: 0.2;
+            }
+        }
+
+        .fox-blindfold {
+            position: fixed;
+            width: 120px;
+            height: 35px;
+            background-color: #111;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -45px);
+            z-index: 202;
+            border-radius: 8px;
+            opacity: 0;
+            transition: opacity 0.5s, transform 1.2s cubic-bezier(0.5, -0.5, 0.5, 1.5);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .fox-blindfold.active {
+            opacity: 1;
+        }
+
+        .fox-blindfold.removed {
+            transform: translate(-200px, -200px) rotate(45deg);
+            opacity: 0;
+        }
+
+        .fox-eyes {
+            position: fixed;
+            font-size: 35px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -45px);
+            z-index: 201;
+            color: #00ccff;
+            text-shadow: 0 0 20px #00ccff, 0 0 40px #00ccff;
+            opacity: 0;
+            transition: opacity 0.8s, text-shadow 1s;
+            letter-spacing: 5px;
+        }
+
+        .fox-eyes.active {
+            opacity: 1;
+            animation: glow-eyes 2s infinite alternate;
+        }
+
+        @keyframes glow-eyes {
+            0% {
+                text-shadow: 0 0 20px #00ccff, 0 0 40px #00ccff;
+            }
+            100% {
+                text-shadow: 0 0 25px #00ccff, 0 0 50px #00ccff, 0 0 75px #00ccff;
+            }
+        }
+
+        .infinity-symbol {
+            position: fixed;
+            font-size: 180px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 201;
+            opacity: 0;
+            color: rgba(255, 255, 255, 0.9);
+            text-shadow: 0 0 20px rgba(0, 204, 255, 0.8), 0 0 40px rgba(0, 204, 255, 0.5);
+            transition: opacity 1s, transform 2s, text-shadow 1s;
+            font-family: Arial, sans-serif;
+            pointer-events: none;
+        }
+
+        .infinity-symbol.active {
+            opacity: 1;
+            animation: pulse-infinity 3s infinite alternate;
+        }
+
+        @keyframes pulse-infinity {
+            0% {
+                transform: translate(-50%, -50%) scale(1);
+                text-shadow: 0 0 20px rgba(0, 204, 255, 0.8), 0 0 40px rgba(0, 204, 255, 0.5);
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1.1);
+                text-shadow: 0 0 30px rgba(0, 204, 255, 0.9), 0 0 60px rgba(0, 204, 255, 0.7), 0 0 90px rgba(0, 204, 255, 0.5);
+            }
+        }
+
+        /* JJK-style cursed energy techniques */
+        .energy-ball {
+            position: fixed;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 202;
+            opacity: 0;
+            filter: blur(5px);
+            box-shadow: 0 0 20px;
+            transition: opacity 0.5s;
+            pointer-events: none;
+        }
+
+        /* Lapse: Blue (Gojo's blue technique) */
+        .blue-energy {
+            background: radial-gradient(circle, #4834d4 0%, #3621a5 70%, #251875 100%);
+            box-shadow: 0 0 30px #4834d4, 0 0 60px rgba(72, 52, 212, 0.5);
+            filter: blur(4px);
+        }
+
+        /* Reversal: Red (Gojo's red technique) */
+        .red-energy {
+            background: radial-gradient(circle, #ff3333 0%, #cc0000 70%, #990000 100%);
+            box-shadow: 0 0 30px #ff3333, 0 0 60px rgba(255, 51, 51, 0.5);
+            filter: blur(4px);
+        }
+
+        /* Hollow Purple (Gojo's purple technique) */
+        .purple-energy {
+            background: radial-gradient(circle, #cc33ff 0%, #9900cc 50%, #660099 100%);
+            box-shadow: 0 0 40px #cc33ff, 0 0 80px rgba(204, 51, 255, 0.6);
+            width: 0;
+            height: 0;
+            z-index: 203;
+            filter: blur(3px);
+            will-change: transform, opacity, width, height, filter, box-shadow;
+            transform-style: preserve-3d;
+            perspective: 1000px;
+            transition: transform 0.2s;
+            position: relative;
+        }
+
+        /* Cursed energy particles */
+        .purple-energy::before {
+            content: '';
+            position: absolute;
+            width: 150%;
+            height: 150%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-image: radial-gradient(circle, rgba(204, 51, 255, 0.5) 1px, transparent 1px);
+            background-size: 10px 10px;
+            border-radius: 50%;
+            animation: rotate-particles 5s linear infinite;
+            opacity: 0.7;
+            z-index: -1;
+        }
+
+        /* Inner glow for purple energy */
+        .purple-energy::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100%;
+            height: 100%;
+            background: inherit;
+            border-radius: 50%;
+            transform: translate(-50%, -50%) scale(0.8);
+            filter: blur(5px);
+            opacity: 0.7;
+            z-index: -1;
+        }
+
+        /* Outer glow for purple energy */
+        .purple-energy-outer {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100%;
+            height: 100%;
+            background: inherit;
+            border-radius: 50%;
+            transform: translate(-50%, -50%) scale(1.2);
+            filter: blur(10px);
+            opacity: 0.3;
+            z-index: -2;
+        }
+
+        .purple-energy.ready-to-launch {
+            animation: pulse-ready 0.5s infinite alternate !important;
+        }
+
+        @keyframes pulse-ready {
+            0% {
+                transform: translate(-50%, -50%) scale(1);
+                box-shadow: 0 0 40px #cc33ff, 0 0 80px rgba(204, 51, 255, 0.6);
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1.1);
+                box-shadow: 0 0 60px #cc33ff, 0 0 120px rgba(204, 51, 255, 0.8);
+            }
+        }
+
+        .energy-trail {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: inherit;
+            filter: blur(10px);
+            opacity: 0.7;
+            z-index: -1;
+        }
+
+        .energy-distortion {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(0, 204, 255, 0.1) 0%, transparent 70%);
+            mix-blend-mode: screen;
+            opacity: 0;
+            z-index: 201;
+            pointer-events: none;
+            transition: opacity 1s;
+        }
+
+        .energy-distortion.active {
+            opacity: 0.6;
+            animation: pulse-distortion 4s infinite alternate;
+        }
+
+        @keyframes pulse-distortion {
+            0% {
+                background: radial-gradient(circle at center, rgba(0, 204, 255, 0.1) 0%, transparent 70%);
+            }
+            100% {
+                background: radial-gradient(circle at center, rgba(0, 204, 255, 0.2) 0%, transparent 80%);
+            }
+        }
+
+        @keyframes orbit {
+            0% {
+                transform: translate(-50%, -50%) rotate(0deg) translateX(120px) translateZ(0);
+            }
+            100% {
+                transform: translate(-50%, -50%) rotate(360deg) translateX(120px) translateZ(0);
+            }
+        }
+
+        @keyframes orbit-reverse {
+            0% {
+                transform: translate(-50%, -50%) rotate(360deg) translateX(120px) translateZ(0);
+            }
+            100% {
+                transform: translate(-50%, -50%) rotate(0deg) translateX(120px) translateZ(0);
+            }
+        }
+
+        /* Orbiting Hands Styles */
+        .orbiting-hand {
+            position: fixed;
+            font-size: 40px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 202;
+            opacity: 0;
+            filter: drop-shadow(0 0 15px rgba(0, 204, 255, 0.8));
+            pointer-events: none;
+            transition: opacity 0.5s;
+        }
+
+        .orbiting-hand.active {
+            opacity: 1;
+        }
+
+        /* Different orbit paths for each hand */
+        .orbiting-hand:nth-child(1) {
+            animation: orbit-hand-1 8s linear infinite;
+        }
+
+        .orbiting-hand:nth-child(2) {
+            animation: orbit-hand-2 12s linear infinite;
+        }
+
+        .orbiting-hand:nth-child(3) {
+            animation: orbit-hand-3 10s linear infinite reverse;
+        }
+
+        .orbiting-hand:nth-child(4) {
+            animation: orbit-hand-4 15s linear infinite;
+        }
+
+        .orbiting-hand:nth-child(5) {
+            animation: orbit-hand-5 9s linear infinite reverse;
+        }
+
+        .orbiting-hand:nth-child(6) {
+            animation: orbit-hand-6 11s linear infinite;
+        }
+
+        /* Keyframes for different orbit paths */
+        @keyframes orbit-hand-1 {
+            0% {
+                transform: translate(-50%, -50%) rotate(0deg) translateX(150px) translateY(-30px) rotate(0deg);
+            }
+            100% {
+                transform: translate(-50%, -50%) rotate(360deg) translateX(150px) translateY(-30px) rotate(360deg);
+            }
+        }
+
+        @keyframes orbit-hand-2 {
+            0% {
+                transform: translate(-50%, -50%) rotate(0deg) translateX(200px) translateY(50px) rotate(0deg);
+            }
+            100% {
+                transform: translate(-50%, -50%) rotate(360deg) translateX(200px) translateY(50px) rotate(360deg);
+            }
+        }
+
+        @keyframes orbit-hand-3 {
+            0% {
+                transform: translate(-50%, -50%) rotate(0deg) translateX(180px) translateY(-80px) rotate(0deg);
+            }
+            100% {
+                transform: translate(-50%, -50%) rotate(360deg) translateX(180px) translateY(-80px) rotate(360deg);
+            }
+        }
+
+        @keyframes orbit-hand-4 {
+            0% {
+                transform: translate(-50%, -50%) rotate(0deg) translateX(250px) translateY(20px) rotate(0deg);
+            }
+            100% {
+                transform: translate(-50%, -50%) rotate(360deg) translateX(250px) translateY(20px) rotate(360deg);
+            }
+        }
+
+        @keyframes orbit-hand-5 {
+            0% {
+                transform: translate(-50%, -50%) rotate(0deg) translateX(120px) translateY(100px) rotate(0deg);
+            }
+            100% {
+                transform: translate(-50%, -50%) rotate(360deg) translateX(120px) translateY(100px) rotate(360deg);
+            }
+        }
+
+        @keyframes orbit-hand-6 {
+            0% {
+                transform: translate(-50%, -50%) rotate(0deg) translateX(220px) translateY(-120px) rotate(0deg);
+            }
+            100% {
+                transform: translate(-50%, -50%) rotate(360deg) translateX(220px) translateY(-120px) rotate(360deg);
+            }
+        }
+
+        @keyframes approach {
+            0% {
+                transform: translate(-50%, -50%) rotate(0deg) translateX(120px) translateZ(0);
+                opacity: 1;
+            }
+            50% {
+                transform: translate(-50%, -50%) rotate(180deg) translateX(70px) translateZ(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -50%) rotate(360deg) translateX(30px) translateZ(0);
+                opacity: 0.8;
+            }
+        }
+
+        @keyframes approach-reverse {
+            0% {
+                transform: translate(-50%, -50%) rotate(360deg) translateX(120px) translateZ(0);
+                opacity: 1;
+            }
+            50% {
+                transform: translate(-50%, -50%) rotate(180deg) translateX(70px) translateZ(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -50%) rotate(0deg) translateX(30px) translateZ(0);
+                opacity: 0.8;
+            }
+        }
+
+        @keyframes grow {
+            0% {
+                width: 0;
+                height: 0;
+                opacity: 0.7;
+                transform: translate(-50%, -50%) scale(0) translateZ(0);
+            }
+            50% {
+                width: 80px;
+                height: 80px;
+                opacity: 0.9;
+                transform: translate(-50%, -50%) scale(0.8) translateZ(0);
+            }
+            100% {
+                width: 120px;
+                height: 120px;
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1) translateZ(0);
+            }
+        }
+
+        @keyframes launch-preparation {
+            0% {
+                transform: translate(-50%, -50%) scale(1) translateZ(0);
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(0.9) translateZ(-50px);
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1) translateZ(0);
+            }
+        }
+
+        @keyframes launch-towards-player {
+            0% {
+                transform: translate(-50%, -50%) scale(1) translateZ(0);
+                filter: blur(3px);
+                box-shadow: 0 0 40px #cc33ff, 0 0 80px rgba(204, 51, 255, 0.6);
+            }
+            20% {
+                transform: translate(-50%, -50%) scale(1.5) translateZ(200px);
+                filter: blur(2px);
+                box-shadow: 0 0 60px #cc33ff, 0 0 120px rgba(204, 51, 255, 0.8);
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(3) translateZ(500px);
+                filter: blur(1px);
+                box-shadow: 0 0 80px #cc33ff, 0 0 160px rgba(204, 51, 255, 1);
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(8) translateZ(1000px);
+                filter: blur(0px);
+                box-shadow: 0 0 100px #cc33ff, 0 0 200px rgba(204, 51, 255, 1);
+            }
+        }
+
+        @keyframes merge-flash {
+            0% {
+                opacity: 0;
+                background: radial-gradient(circle, rgba(204, 51, 255, 0.2) 0%, rgba(204, 51, 255, 0) 70%);
+            }
+            30% {
+                opacity: 0.8;
+                background: radial-gradient(circle, rgba(204, 51, 255, 0.8) 0%, rgba(204, 51, 255, 0.2) 70%);
+            }
+            100% {
+                opacity: 0;
+                background: radial-gradient(circle, rgba(204, 51, 255, 0.2) 0%, rgba(204, 51, 255, 0) 70%);
+            }
+        }
+
+        .merge-flash {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 201;
+            pointer-events: none;
+            opacity: 0;
+            mix-blend-mode: screen;
+        }
+
+        .energy-rings {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 200px;
+            height: 200px;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            border: 2px solid rgba(204, 51, 255, 0.7);
+            box-shadow: 0 0 20px rgba(204, 51, 255, 0.5), inset 0 0 20px rgba(204, 51, 255, 0.5);
+            z-index: 202;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .energy-rings.active {
+            opacity: 1;
+            animation: expand-rings 1.5s ease-out;
+        }
+
+        @keyframes expand-rings {
+            0% {
+                width: 120px;
+                height: 120px;
+                opacity: 1;
+                border-width: 10px;
+            }
+            100% {
+                width: 500px;
+                height: 500px;
+                opacity: 0;
+                border-width: 1px;
+            }
+        }
+
+        @keyframes charge {
+            0% {
+                transform: translate(-50%, -50%) scale(1);
+                box-shadow: 0 0 40px #cc33ff, 0 0 80px rgba(204, 51, 255, 0.6);
+                filter: blur(3px);
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.3);
+                box-shadow: 0 0 60px #cc33ff, 0 0 120px rgba(204, 51, 255, 0.8);
+                filter: blur(5px);
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+                box-shadow: 0 0 40px #cc33ff, 0 0 80px rgba(204, 51, 255, 0.6);
+                filter: blur(3px);
+            }
+        }
+
+        @keyframes impact-flash {
+            0% {
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+            }
+        }
+
+        @keyframes crash {
+            0% {
+                transform: translate(-50%, -50%) scale(8) translateZ(1000px);
+                opacity: 1;
+                filter: blur(0px);
+            }
+            20% {
+                transform: translate(-50%, -50%) scale(12) translateZ(1200px);
+                opacity: 1;
+                filter: blur(0px);
+            }
+            40% {
+                transform: translate(-50%, -50%) scale(20) translateZ(1500px);
+                opacity: 0.9;
+                filter: blur(1px);
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(50) translateZ(2000px);
+                opacity: 0;
+                filter: blur(3px);
+            }
+        }
+
+        @keyframes extreme-shake {
+            0%, 100% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+            10% {
+                transform: translate(-40px, 30px) rotate(-2deg);
+            }
+            20% {
+                transform: translate(40px, -30px) rotate(2deg);
+            }
+            30% {
+                transform: translate(-40px, -40px) rotate(1deg);
+            }
+            40% {
+                transform: translate(40px, 40px) rotate(-1deg);
+            }
+            50% {
+                transform: translate(-30px, 20px) rotate(-1.5deg);
+            }
+            60% {
+                transform: translate(30px, -20px) rotate(1.5deg);
+            }
+            70% {
+                transform: translate(-30px, -30px) rotate(0.5deg);
+            }
+            80% {
+                transform: translate(30px, 30px) rotate(-0.5deg);
+            }
+            90% {
+                transform: translate(-20px, 10px) rotate(-1deg);
+            }
+        }
+
+        .extreme-shake {
+            animation: extreme-shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+            transform-origin: center center;
+            backface-visibility: hidden;
+            perspective: 1000px;
+        }
+
+        .impact-flash {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            z-index: 205;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .blackout {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: black;
+            z-index: 206;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s;
+        }
+
+        .blackout.active {
+            opacity: 1;
+        }
+
+        .anime-quote {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8), 0 0 20px rgba(204, 51, 255, 0.8);
+            text-align: center;
+            z-index: 210;
+            opacity: 0;
+            transition: opacity 0.5s;
+            font-family: 'Arial', sans-serif;
+            letter-spacing: 1px;
+            max-width: 80%;
+            pointer-events: none;
+        }
+
+        .anime-quote.active {
+            opacity: 1;
+            animation: quote-pulse 2s infinite alternate;
+        }
+
+        @keyframes quote-pulse {
+            0% {
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8), 0 0 20px rgba(204, 51, 255, 0.8);
+            }
+            100% {
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8), 0 0 30px rgba(204, 51, 255, 1), 0 0 50px rgba(204, 51, 255, 0.6);
+            }
+        }
+
+        @keyframes power-surge {
+            0% {
+                opacity: 0;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+            }
+        }
+
+        @keyframes shake {
+            0%, 100% {
+                transform: translateX(0);
+            }
+            10%, 30%, 50%, 70%, 90% {
+                transform: translateX(-20px);
+            }
+            20%, 40%, 60%, 80% {
+                transform: translateX(20px);
+            }
+        }
+
+        @keyframes violent-shake {
+            0%, 100% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+            10%, 50%, 90% {
+                transform: translate(-30px, 20px) rotate(-1deg);
+            }
+            20%, 60% {
+                transform: translate(30px, -20px) rotate(1deg);
+            }
+            30%, 70% {
+                transform: translate(-20px, -30px) rotate(0.5deg);
+            }
+            40%, 80% {
+                transform: translate(20px, 30px) rotate(-0.5deg);
+            }
+        }
+
+        .screen-shake {
+            animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+            transform-origin: center center;
+            backface-visibility: hidden;
+            perspective: 1000px;
+        }
+
+        .violent-shake {
+            animation: violent-shake 0.3s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+            transform-origin: center center;
+            backface-visibility: hidden;
+            perspective: 1000px;
+        }
+
+        .crack-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('https://i.imgur.com/SYNXcqL.png');
+            background-size: cover;
+            opacity: 0;
+            z-index: 204;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            mix-blend-mode: overlay;
+        }
+
+        .crack-overlay.active {
+            opacity: 1;
+        }
+
+        .power-surge {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(204, 51, 255, 0.8) 0%, rgba(204, 51, 255, 0) 70%);
+            z-index: 203;
+            opacity: 0;
+            pointer-events: none;
+            mix-blend-mode: screen;
+        }
+
+        .power-surge.active {
+            animation: power-surge 0.5s forwards;
+        }
+
+        .death-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: black;
+            color: #ff3333;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 300;
+            opacity: 0;
+            transition: opacity 1.5s;
+            pointer-events: none;
+            background-image: linear-gradient(to bottom, rgba(50, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.9) 100%);
+        }
+
+        .death-screen.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .death-screen h1 {
+            font-size: 90px;
+            margin-bottom: 30px;
+            text-shadow: 0 0 20px #ff3333, 0 0 40px #ff3333;
+            font-family: 'Arial Black', sans-serif;
+            letter-spacing: 5px;
+            animation: pulse-text 2s infinite alternate;
+        }
+
+        @keyframes pulse-text {
+            0% {
+                text-shadow: 0 0 20px #ff3333, 0 0 40px #ff3333;
+            }
+            100% {
+                text-shadow: 0 0 30px #ff3333, 0 0 60px #ff3333, 0 0 90px #ff3333;
+            }
+        }
+
+        .death-screen p {
+            font-size: 28px;
+            margin-bottom: 50px;
+            text-shadow: 0 0 10px #ff3333;
+            max-width: 600px;
+            text-align: center;
+            line-height: 1.5;
+        }
+
+        .death-screen button {
+            padding: 15px 40px;
+            background-color: #8B0000;
+            color: white;
+            border: 3px solid #ff3333;
+            border-radius: 8px;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+            box-shadow: 0 0 20px rgba(255, 51, 51, 0.5);
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        .death-screen button:hover {
+            background-color: #FF0000;
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(255, 51, 51, 0.8);
+        }
+
+        .access-denied {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ff0000;
+            font-size: 60px;
+            font-weight: bold;
+            text-shadow: 0 0 20px #ff0000;
+            z-index: 205;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        .access-denied.active {
+            opacity: 1;
+        }
+
+        /* News Section Styling */
+        .news-container {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            max-width: 800px;
+            max-height: calc(100vh - 250px);
+            overflow-y: auto;
+            z-index: 50;
+            padding: 20px;
+            background-color: rgba(10, 10, 20, 0.8);
+            border: 2px solid #4834d4;
+            border-radius: 5px;
+            box-shadow: 0 0 15px rgba(72, 52, 212, 0.5);
+            color: white;
+            scrollbar-width: thin;
+            scrollbar-color: #4834d4 rgba(10, 10, 20, 0.5);
+        }
+
+        .news-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .news-container::-webkit-scrollbar-track {
+            background: rgba(10, 10, 20, 0.5);
+        }
+
+        .news-container::-webkit-scrollbar-thumb {
+            background-color: #4834d4;
+            border-radius: 10px;
+        }
+
+        .news-header {
+            text-align: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #4834d4;
+            color: #fff;
+            text-shadow: 0 0 10px #4834d4;
+            font-size: 24px;
+            letter-spacing: 2px;
+        }
+
+        /* Search and Filter Styling */
+        .search-filter-bar {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(72, 52, 212, 0.3);
+        }
+
+        .search-box {
+            display: flex;
+            margin-bottom: 12px;
+        }
+
+        #search-input {
+            flex: 1;
+            padding: 8px 12px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid #4834d4;
+            border-radius: 4px 0 0 4px;
+            color: white;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        #search-button {
+            padding: 8px 15px;
+            background-color: rgba(72, 52, 212, 0.4);
+            color: white;
+            border: 1px solid #4834d4;
+            border-left: none;
+            border-radius: 0 4px 4px 0;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: bold;
+        }
+
+        #search-button:hover {
+            background-color: rgba(72, 52, 212, 0.6);
+            box-shadow: 0 0 10px rgba(72, 52, 212, 0.4);
+        }
+
+        .category-filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .category-filter {
+            padding: 6px 12px;
+            background-color: rgba(72, 52, 212, 0.2);
+            color: white;
+            border: 1px solid rgba(72, 52, 212, 0.5);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .category-filter:hover {
+            background-color: rgba(72, 52, 212, 0.4);
+            box-shadow: 0 0 8px rgba(72, 52, 212, 0.3);
+        }
+
+        .category-filter.active {
+            background-color: rgba(72, 52, 212, 0.6);
+            border-color: #4834d4;
+            box-shadow: 0 0 10px rgba(72, 52, 212, 0.4);
+            font-weight: bold;
+        }
+
+        /* Category Badge */
+        .category-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            background-color: rgba(72, 52, 212, 0.3);
+            color: white;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-left: 10px;
+            vertical-align: middle;
+            border: 1px solid rgba(72, 52, 212, 0.5);
+        }
+
+        .category-badge.roblox-script {
+            background-color: rgba(255, 76, 48, 0.3);
+            border-color: rgba(255, 76, 48, 0.5);
+        }
+
+        .category-badge.runner {
+            background-color: rgba(46, 204, 113, 0.3);
+            border-color: rgba(46, 204, 113, 0.5);
+        }
+
+        /* Social Footer Styling */
+        .social-footer {
+            position: fixed;
+            bottom: 30px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+            pointer-events: none; /* This allows clicks to pass through to elements below */
+        }
+
+        .social-icons {
+            display: flex;
+            gap: 20px;
+            background-color: rgba(10, 10, 20, 0.7);
+            padding: 10px 20px;
+            border-radius: 30px;
+            border: 1px solid rgba(72, 52, 212, 0.5);
+            box-shadow: 0 0 15px rgba(72, 52, 212, 0.4);
+            pointer-events: auto; /* Re-enable pointer events for the icons */
+        }
+
+        .social-icon {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            color: white;
+            background-color: rgba(72, 52, 212, 0.3);
+            border: 1px solid rgba(72, 52, 212, 0.5);
+        }
+
+        .social-icon:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(72, 52, 212, 0.6);
+        }
+
+        .social-icon.youtube {
+            color: #FF0000;
+            background-color: rgba(255, 0, 0, 0.1);
+            border-color: rgba(255, 0, 0, 0.3);
+        }
+
+        .social-icon.youtube:hover {
+            background-color: rgba(255, 0, 0, 0.2);
+            box-shadow: 0 5px 15px rgba(255, 0, 0, 0.4);
+        }
+
+        .social-icon.discord {
+            color: #7289DA;
+            background-color: rgba(114, 137, 218, 0.1);
+            border-color: rgba(114, 137, 218, 0.3);
+        }
+
+        .social-icon.discord:hover {
+            background-color: rgba(114, 137, 218, 0.2);
+            box-shadow: 0 5px 15px rgba(114, 137, 218, 0.4);
+        }
+
+        .news-item {
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(72, 52, 212, 0.3);
+        }
+
+        .news-item:last-child {
+            border-bottom: none;
+        }
+
+        .news-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #4834d4;
+            text-shadow: 0 0 5px rgba(72, 52, 212, 0.5);
+        }
+
+        .news-date {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 10px;
+            font-style: italic;
+        }
+
+        .news-content {
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        /* Cover Image Styling */
+        .news-cover-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+            overflow: hidden;
+            border-radius: 6px;
+            background-color: rgba(10, 10, 20, 0.5);
+            padding: 5px;
+            border: 1px solid rgba(72, 52, 212, 0.5);
+            box-shadow: 0 0 15px rgba(72, 52, 212, 0.3);
+        }
+
+        .news-cover-image {
+            max-width: 100%;
+            max-height: 300px;
+            object-fit: contain;
+            border-radius: 4px;
+            transition: transform 0.3s ease;
+        }
+
+        .news-cover-container:hover .news-cover-image {
+            transform: scale(1.02);
+        }
+
+        /* Read More Button */
+        .read-more-btn {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 5px 12px;
+            background-color: rgba(72, 52, 212, 0.2);
+            color: white;
+            border: 1px solid #4834d4;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .read-more-btn:hover {
+            background-color: rgba(72, 52, 212, 0.4);
+            box-shadow: 0 0 8px rgba(72, 52, 212, 0.4);
+        }
+
+        /* Truncated Content */
+        .content-truncated {
+            max-height: 100px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .content-truncated::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 40px;
+            background: linear-gradient(to bottom, rgba(10, 10, 20, 0) 0%, rgba(10, 10, 20, 0.8) 100%);
+        }
+
+        /* Gallery Styling */
+        .gallery-section {
+            margin-top: 25px;
+            margin-bottom: 15px;
+            padding: 15px;
+            background-color: rgba(10, 10, 20, 0.3);
+            border-radius: 6px;
+            border: 1px solid rgba(72, 52, 212, 0.3);
+        }
+
+        .gallery-title {
+            color: #4834d4;
+            font-size: 18px;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(72, 52, 212, 0.3);
+            text-shadow: 0 0 5px rgba(72, 52, 212, 0.3);
+        }
+
+        .news-gallery {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .gallery-thumbnail {
+            width: calc(33.333% - 8px);
+            height: 90px;
+            object-fit: cover;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 2px solid rgba(72, 52, 212, 0.3);
+            transition: all 0.2s;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .gallery-thumbnail:hover {
+            transform: scale(1.05);
+            border-color: rgba(72, 52, 212, 0.8);
+            box-shadow: 0 0 15px rgba(72, 52, 212, 0.5);
+        }
+
+        /* Gallery Modal */
+        .gallery-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.92);
+            z-index: 2000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            backdrop-filter: blur(5px);
+        }
+
+        .gallery-modal.active {
+            display: flex;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .gallery-full-image {
+            max-width: 90%;
+            max-height: 80vh;
+            object-fit: contain;
+            border: 3px solid rgba(72, 52, 212, 0.6);
+            box-shadow: 0 0 30px rgba(72, 52, 212, 0.5), 0 0 60px rgba(0, 0, 0, 0.5);
+            border-radius: 5px;
+            animation: imageZoomIn 0.4s ease-out;
+        }
+
+        @keyframes imageZoomIn {
+            from { transform: scale(0.9); opacity: 0.5; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .gallery-controls {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 25px;
+        }
+
+        .gallery-control {
+            padding: 10px 20px;
+            background-color: rgba(72, 52, 212, 0.3);
+            color: white;
+            border: 2px solid #4834d4;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.2s;
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+        }
+
+        .gallery-control:hover {
+            background-color: rgba(72, 52, 212, 0.6);
+            box-shadow: 0 0 15px rgba(72, 52, 212, 0.7);
+            transform: translateY(-2px);
+        }
+
+        .gallery-control:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .gallery-close {
+            position: absolute;
+            top: 20px;
+            right: 25px;
+            font-size: 40px;
+            color: white;
+            cursor: pointer;
+            text-shadow: 0 0 10px rgba(72, 52, 212, 0.5);
+            transition: all 0.2s;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background-color: rgba(72, 52, 212, 0.2);
+        }
+
+        .gallery-close:hover {
+            color: #4834d4;
+            text-shadow: 0 0 15px rgba(72, 52, 212, 0.8);
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: rotate(90deg);
+        }
+
+        /* Admin Panel Styling */
+        .admin-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #0a0a14;
+            background-image: linear-gradient(to bottom, #0a0a14, #1a1a2e);
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+            color: white;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow-y: auto;
+        }
+
+        .admin-panel.active {
+            display: flex;
+        }
+
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #4834d4;
+            margin-bottom: 20px;
+        }
+
+        .admin-title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 0 0 10px #4834d4;
+            letter-spacing: 2px;
+        }
+
+        .admin-logout {
+            padding: 8px 15px;
+            background-color: rgba(72, 52, 212, 0.3);
+            color: white;
+            border: 1px solid #4834d4;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: bold;
+        }
+
+        .admin-logout:hover {
+            background-color: rgba(72, 52, 212, 0.5);
+            box-shadow: 0 0 10px rgba(72, 52, 212, 0.5);
+        }
+
+        /* Admin Tabs */
+        .admin-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(72, 52, 212, 0.3);
+            overflow-x: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #4834d4 rgba(10, 10, 20, 0.5);
+        }
+
+        .admin-tabs::-webkit-scrollbar {
+            height: 5px;
+        }
+
+        .admin-tabs::-webkit-scrollbar-track {
+            background: rgba(10, 10, 20, 0.5);
+        }
+
+        .admin-tabs::-webkit-scrollbar-thumb {
+            background-color: #4834d4;
+            border-radius: 10px;
+        }
+
+        .admin-tab {
+            padding: 12px 20px;
+            background-color: rgba(10, 10, 20, 0.5);
+            color: rgba(255, 255, 255, 0.7);
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            font-size: 16px;
+            white-space: nowrap;
+        }
+
+        .admin-tab:hover {
+            background-color: rgba(72, 52, 212, 0.2);
+            color: white;
+        }
+
+        .admin-tab.active {
+            background-color: rgba(72, 52, 212, 0.3);
+            color: white;
+            border-bottom: 3px solid #4834d4;
+            box-shadow: 0 -5px 15px rgba(72, 52, 212, 0.2);
+        }
+
+        /* Admin Content */
+        .admin-content {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .admin-tab-content {
+            display: none;
+        }
+
+        .admin-tab-content.active {
+            display: block;
+        }
+
+        /* Dashboard */
+        .admin-dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .dashboard-card {
+            background-color: rgba(10, 10, 20, 0.5);
+            border: 1px solid #4834d4;
+            border-radius: 5px;
+            padding: 15px;
+            box-shadow: 0 0 10px rgba(72, 52, 212, 0.3);
+            text-align: center;
+        }
+
+        .dashboard-card-title {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 10px;
+        }
+
+        .dashboard-card-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #4834d4;
+            text-shadow: 0 0 5px rgba(72, 52, 212, 0.5);
+        }
+
+        .dashboard-card-icon {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #4834d4;
+        }
+
+        .admin-section {
+            background-color: rgba(10, 10, 20, 0.5);
+            border: 1px solid #4834d4;
+            border-radius: 5px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(72, 52, 212, 0.3);
+            margin-bottom: 20px;
+        }
+
+        .admin-section-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(72, 52, 212, 0.5);
+            color: #4834d4;
+            text-shadow: 0 0 5px rgba(72, 52, 212, 0.3);
+            display: flex;
+            align-items: center;
+        }
+
+        .admin-section-title .icon {
+            margin-right: 10px;
+            font-size: 22px;
+        }
+
+        .admin-section-description {
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 15px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .admin-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: bold;
+        }
+
+        .form-hint {
+            display: block;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 5px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .admin-form input, .admin-form textarea, .admin-form select {
+            padding: 12px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(72, 52, 212, 0.5);
+            border-radius: 4px;
+            color: white;
+            font-family: 'Poppins', sans-serif;
+            width: 100%;
+            box-sizing: border-box;
+            transition: all 0.2s;
+        }
+
+        .admin-form input:focus, .admin-form textarea:focus, .admin-form select:focus {
+            border-color: #4834d4;
+            box-shadow: 0 0 8px rgba(72, 52, 212, 0.5);
+            outline: none;
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .admin-form select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;utf8,<svg fill='white' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            padding-right: 30px;
+        }
+
+        .admin-form textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: flex-end;
+        }
+
+        .admin-form button {
+            padding: 12px 20px;
+            background-color: rgba(72, 52, 212, 0.3);
+            color: white;
+            border: 1px solid #4834d4;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .admin-form button .icon {
+            margin-right: 8px;
+            font-size: 18px;
+        }
+
+        .admin-form button:hover {
+            background-color: rgba(72, 52, 212, 0.5);
+            box-shadow: 0 0 10px rgba(72, 52, 212, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .admin-form button.secondary {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .admin-form button.secondary:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+        }
+
+        .admin-form button.danger {
+            background-color: rgba(231, 76, 60, 0.3);
+            border-color: rgba(231, 76, 60, 0.5);
+        }
+
+        .admin-form button.danger:hover {
+            background-color: rgba(231, 76, 60, 0.5);
+            box-shadow: 0 0 10px rgba(231, 76, 60, 0.4);
+        }
+
+        .news-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-height: 500px;
+            overflow-y: auto;
+            padding-right: 10px;
+            scrollbar-width: thin;
+            scrollbar-color: #4834d4 rgba(10, 10, 20, 0.5);
+        }
+
+        .news-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .news-list::-webkit-scrollbar-track {
+            background: rgba(10, 10, 20, 0.5);
+            border-radius: 10px;
+        }
+
+        .news-list::-webkit-scrollbar-thumb {
+            background-color: #4834d4;
+            border-radius: 10px;
+        }
+
+        .news-list-item {
+            background-color: rgba(10, 10, 20, 0.7);
+            border: 1px solid rgba(72, 52, 212, 0.3);
+            border-radius: 5px;
+            padding: 15px;
+            position: relative;
+            transition: all 0.2s;
+        }
+
+        .news-list-item:hover {
+            background-color: rgba(10, 10, 20, 0.9);
+            border-color: rgba(72, 52, 212, 0.6);
+            box-shadow: 0 0 10px rgba(72, 52, 212, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .news-list-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            padding-right: 70px;
+            font-size: 16px;
+            color: white;
+            display: flex;
+            align-items: center;
+        }
+
+        .news-list-category {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            margin-left: 8px;
+            background-color: rgba(72, 52, 212, 0.3);
+            border: 1px solid rgba(72, 52, 212, 0.5);
+        }
+
+        .news-list-category.roblox-script {
+            background-color: rgba(255, 76, 48, 0.3);
+            border-color: rgba(255, 76, 48, 0.5);
+        }
+
+        .news-list-category.runner {
+            background-color: rgba(46, 204, 113, 0.3);
+            border-color: rgba(46, 204, 113, 0.5);
+        }
+
+        .news-list-date {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+
+        .news-list-date .icon {
+            margin-right: 5px;
+            font-size: 14px;
+            opacity: 0.7;
+        }
+
+        .news-list-preview {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 5px;
+            line-height: 1.4;
+            max-height: 40px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .news-list-actions {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .news-list-actions button {
+            padding: 5px 10px;
+            background-color: rgba(72, 52, 212, 0.2);
+            color: white;
+            border: 1px solid rgba(72, 52, 212, 0.5);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+        }
+
+        .news-list-actions button .icon {
+            margin-right: 4px;
+            font-size: 14px;
+        }
+
+        .news-list-actions button:hover {
+            background-color: rgba(72, 52, 212, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .news-list-actions button.delete {
+            background-color: rgba(231, 76, 60, 0.2);
+            border-color: rgba(231, 76, 60, 0.5);
+        }
+
+        .news-list-actions button.delete:hover {
+            background-color: rgba(231, 76, 60, 0.4);
+            box-shadow: 0 0 8px rgba(231, 76, 60, 0.3);
+        }
+
+        .admin-message {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            text-align: center;
+            display: none;
+            font-weight: bold;
+            position: relative;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .admin-message.success {
+            background-color: rgba(39, 174, 96, 0.2);
+            border: 1px solid #27ae60;
+            color: #2ecc71;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .admin-message.success::before {
+            content: "✓";
+            margin-right: 10px;
+            font-size: 18px;
+        }
+
+        .admin-message.error {
+            background-color: rgba(231, 76, 60, 0.2);
+            border: 1px solid #e74c3c;
+            color: #e74c3c;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .admin-message.error::before {
+            content: "✕";
+            margin-right: 10px;
+            font-size: 18px;
+        }
+
+        .admin-message.info {
+            background-color: rgba(52, 152, 219, 0.2);
+            border: 1px solid #3498db;
+            color: #3498db;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .admin-message.info::before {
+            content: "ℹ";
+            margin-right: 10px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div class="title">NOARZ</div>
+
+    <div class="cursed-spirit">👁️</div>
+    <div class="cursed-spirit">👹</div>
+    <div class="cursed-spirit">👺</div>
+
+    <!-- News Container -->
+    <div class="news-container" id="news-container">
+        <div class="news-header">📰MESSAGE📣</div>
+
+        <!-- Search and Filter Bar -->
+        <div class="search-filter-bar">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search news...">
+                <button id="search-button">Search</button>
+            </div>
+            <div class="category-filters">
+                <button class="category-filter active" data-category="all">All</button>
+                <button class="category-filter" data-category="roblox-script">Roblox Script</button>
+                <button class="category-filter" data-category="runner">Runner</button>
+            </div>
+        </div>
+
+        <div id="news-content">
+            <!-- News items will be loaded here dynamically -->
+        </div>
+    </div>
+
+    <div class="fox" id="fox">🦊</div>
+
+    <!-- Admin Panel -->
+    <div class="admin-panel" id="admin-panel">
+        <div class="admin-header">
+            <div class="admin-title">Admin Panel</div>
+            <button class="admin-logout" id="admin-logout">
+                <span class="icon">⬅️</span> Logout
+            </button>
+        </div>
+
+        <div class="admin-message" id="admin-message"></div>
+
+        <div class="admin-tabs">
+            <button class="admin-tab active" data-tab="dashboard">
+                📊 Dashboard
+            </button>
+            <button class="admin-tab" data-tab="create-post">
+                ✏️ Create Post
+            </button>
+            <button class="admin-tab" data-tab="manage-posts">
+                📋 Manage Posts
+            </button>
+            <button class="admin-tab" data-tab="social-media">
+                🔗 Social Media
+            </button>
+            <button class="admin-tab" data-tab="settings">
+                ⚙️ Settings
+            </button>
+        </div>
+
+        <div class="admin-content">
+            <!-- Dashboard Tab -->
+            <div class="admin-tab-content active" id="dashboard-tab">
+                <div class="admin-dashboard">
+                    <div class="dashboard-card">
+                        <div class="dashboard-card-icon">📰</div>
+                        <div class="dashboard-card-title">Total Posts</div>
+                        <div class="dashboard-card-value" id="total-posts-count">0</div>
+                    </div>
+                    <div class="dashboard-card">
+                        <div class="dashboard-card-icon">🔍</div>
+                        <div class="dashboard-card-title">Roblox Script Posts</div>
+                        <div class="dashboard-card-value" id="roblox-posts-count">0</div>
+                    </div>
+                    <div class="dashboard-card">
+                        <div class="dashboard-card-icon">🏃</div>
+                        <div class="dashboard-card-title">Runner Posts</div>
+                        <div class="dashboard-card-value" id="runner-posts-count">0</div>
+                    </div>
+                </div>
+
+                <div class="admin-section">
+                    <div class="admin-section-title">
+                        <span class="icon">📊</span> Recent Activity
+                    </div>
+                    <div class="admin-section-description">
+                        Here's a summary of your recent activity on the site.
+                    </div>
+                    <div class="news-list" id="recent-posts-list" style="max-height: 300px;">
+                        <!-- Recent posts will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Create Post Tab -->
+            <div class="admin-tab-content" id="create-post-tab">
+                <div class="admin-section">
+                    <div class="admin-section-title">
+                        <span class="icon">✏️</span> Create New Post
+                    </div>
+                    <div class="admin-section-description">
+                        Fill out the form below to create a new post. Fields marked with * are required.
+                    </div>
+                    <form class="admin-form" id="news-form">
+                        <input type="hidden" id="edit-id" value="">
+
+                        <div class="form-group">
+                            <label for="news-title">Post Title *</label>
+                            <input type="text" id="news-title" placeholder="Enter a descriptive title" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="news-category">Category *</label>
+                            <select id="news-category" required>
+                                <option value="">-- Select Category --</option>
+                                <option value="roblox-script">Roblox Script</option>
+                                <option value="runner">Runner</option>
+                            </select>
+                            <span class="form-hint">Choose the category that best fits your post</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="news-cover-image">Cover Image URL</label>
+                            <input type="text" id="news-cover-image" placeholder="https://example.com/image.jpg">
+                            <span class="form-hint">Add a URL to an image that will be displayed as the cover</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="news-content-editor">Post Content *</label>
+                            <textarea id="news-content-editor" placeholder="Write your post content here..." required></textarea>
+                            <span class="form-hint">Use double line breaks to create new paragraphs</span>
+                        </div>
+
+                        <div class="admin-section-title" style="margin-top: 20px; font-size: 16px;">
+                            <span class="icon">🖼️</span> Gallery Images
+                        </div>
+                        <div class="admin-section-description">
+                            Add image URLs to create a gallery within your post. These will be displayed as thumbnails that users can click to view full-size.
+                        </div>
+
+                        <div id="gallery-inputs">
+                            <div class="gallery-input-group">
+                                <input type="text" class="gallery-image-url" placeholder="https://example.com/gallery-image.jpg">
+                                <button type="button" class="remove-gallery-image">Remove</button>
+                            </div>
+                        </div>
+
+                        <button type="button" id="add-gallery-image" style="margin: 10px 0 20px;">
+                            <span class="icon">➕</span> Add Another Image
+                        </button>
+
+                        <div class="form-actions">
+                            <button type="button" class="secondary" id="clear-form">
+                                <span class="icon">🗑️</span> Clear Form
+                            </button>
+                            <button type="submit" id="news-submit">
+                                <span class="icon">💾</span> <span id="submit-text">Add Post</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Manage Posts Tab -->
+            <div class="admin-tab-content" id="manage-posts-tab">
+                <div class="admin-section">
+                    <div class="admin-section-title">
+                        <span class="icon">📋</span> Manage Posts
+                    </div>
+                    <div class="admin-section-description">
+                        View, edit, and delete your posts. Click on a post to edit it or use the action buttons.
+                    </div>
+                    <div class="news-list" id="admin-news-list">
+                        <!-- News items for management will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Social Media Tab -->
+            <div class="admin-tab-content" id="social-media-tab">
+                <div class="admin-section">
+                    <div class="admin-section-title">
+                        <span class="icon">🔗</span> Social Media Links
+                    </div>
+                    <div class="admin-section-description">
+                        Configure the links for the social media icons displayed at the bottom of your site.
+                    </div>
+                    <form class="admin-form" id="social-links-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="youtube-link">
+                                    <span style="color: #FF0000;">YouTube</span> URL
+                                </label>
+                                <input type="url" id="youtube-link" placeholder="https://www.youtube.com/c/yourchannel">
+                                <span class="form-hint">Enter the full URL to your YouTube channel or page</span>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="discord-link">
+                                    <span style="color: #7289DA;">Discord</span> URL
+                                </label>
+                                <input type="url" id="discord-link" placeholder="https://discord.gg/yourinvite">
+                                <span class="form-hint">Enter your Discord invite link</span>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" id="social-links-submit">
+                                <span class="icon">💾</span> Update Social Links
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div class="admin-tab-content" id="settings-tab">
+                <div class="admin-section">
+                    <div class="admin-section-title">
+                        <span class="icon">⚙️</span> Site Settings
+                    </div>
+                    <div class="admin-section-description">
+                        Configure general settings for your website.
+                    </div>
+                    <form class="admin-form" id="site-settings-form">
+                        <div class="form-group">
+                            <label for="site-title">Site Title</label>
+                            <input type="text" id="site-title" value="NOARZ" placeholder="Enter site title">
+                            <span class="form-hint">This appears at the top of your website</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="news-header">News Header Text</label>
+                            <input type="text" id="news-header" value="📰MESSAGE📣" placeholder="Enter news header text">
+                            <span class="form-hint">This appears above your news posts</span>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" id="site-settings-submit">
+                                <span class="icon">💾</span> Save Settings
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="admin-section">
+                    <div class="admin-section-title">
+                        <span class="icon">🔒</span> Admin Access
+                    </div>
+                    <div class="admin-section-description">
+                        Manage your admin access credentials.
+                    </div>
+                    <form class="admin-form" id="admin-settings-form">
+                        <div class="form-group">
+                            <label for="admin-code">Admin Access Code</label>
+                            <input type="password" id="admin-code" placeholder="Enter new access code">
+                            <span class="form-hint">This is the code used to access the admin panel</span>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" id="admin-settings-submit" class="danger">
+                                <span class="icon">🔐</span> Update Access Code
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="dialogue-box" id="dialogue-box">
+        <div class="fox-portrait">🦊</div>
+        <div class="dialogue-content">
+            <div class="dialogue-name">Kitsune Sorcerer</div>
+            <div class="dialogue-text" id="dialogue-text">Greetings, jujutsu sorcerer. This domain is restricted to Admin only. Are you Admin?</div>
+            <div class="dialogue-options" id="dialogue-options">
+                <div class="dialogue-option" id="option-admin">Yes, I am Admin</div>
+                <div class="dialogue-option" id="option-not-admin">No, I'm someone else</div>
+            </div>
+            <div class="password-input" id="password-input">
+                <input type="password" id="admin-password" placeholder="Enter Admin's access code">
+                <button id="submit-password">Submit</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="grass"></div>
+    <div class="ground"></div>
+
+    <!-- Social Media Footer -->
+    <div class="social-footer">
+        <div class="social-icons">
+            <a href="https://www.youtube.com" target="_blank" class="social-icon youtube">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32">
+                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" fill="currentColor"/>
+                </svg>
+            </a>
+            <a href="https://discord.com" target="_blank" class="social-icon discord">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32">
+                    <path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189z" fill="currentColor"/>
+                </svg>
+            </a>
+        </div>
+    </div>
+
+    <!-- Domain Expansion Elements -->
+    <div class="domain-overlay" id="domain-overlay"></div>
+    <div class="domain-particles" id="domain-particles"></div>
+    <div class="energy-distortion" id="energy-distortion"></div>
+    <div class="fox-aura" id="fox-aura"></div>
+    <div class="floating-fox" id="floating-fox">🦊</div>
+    <div class="fox-blindfold" id="fox-blindfold"></div>
+    <div class="fox-eyes" id="fox-eyes">👁️👁️</div>
+    <div class="infinity-symbol" id="infinity-symbol">&#8734;</div>
+    <div class="hand-gesture" id="hand-gesture">👌</div>
+    <div class="energy-ball blue-energy" id="blue-energy">
+        <div class="energy-trail"></div>
+    </div>
+    <div class="energy-ball red-energy" id="red-energy">
+        <div class="energy-trail"></div>
+    </div>
+    <div class="energy-ball purple-energy" id="purple-energy"></div>
+    <div class="energy-rings" id="energy-rings"></div>
+    <div class="merge-flash" id="merge-flash"></div>
+    <div class="power-surge" id="power-surge"></div>
+    <div class="impact-flash" id="impact-flash"></div>
+    <div class="crack-overlay" id="crack-overlay"></div>
+    <div class="blackout" id="blackout"></div>
+    <div class="access-denied" id="access-denied">ACCESS DENIED</div>
+
+    <!-- Gallery Modal -->
+    <div class="gallery-modal" id="gallery-modal">
+        <div class="gallery-close" id="gallery-close">×</div>
+        <img src="" alt="Gallery Image" class="gallery-full-image" id="gallery-full-image">
+        <div class="gallery-controls">
+            <button class="gallery-control" id="gallery-prev">Previous</button>
+            <button class="gallery-control" id="gallery-next">Next</button>
+        </div>
+    </div>
+
+    <!-- Anime Quotes -->
+    <div class="anime-quote" id="quote-infinity">Throughout Heaven and Earth, I alone am the honored one.</div>
+    <div class="anime-quote" id="quote-blue-red">Blue brings forth. Red expels.</div>
+    <div class="anime-quote" id="quote-hollow-purple">But what happens when they collide? Hollow Purple.</div>
+    <div class="anime-quote" id="quote-launch">Lapse. Blue.</div>
+    <div class="anime-quote" id="quote-impact">Reversal. Red.</div>
+    <div class="anime-quote" id="quote-final">Hollow Purple: Collapse.</div>
+
+    <!-- Death Screen -->
+    <div class="death-screen" id="death-screen">
+        <h1>YOU DEAD</h1>
+        <p>คุณโดนพลังของโกโจ</p>
+        <button id="restart-button">ทำการเกิดใหม่</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Initialize the data manager
+            await window.dataManager.initialize();
+
+            const fox = document.getElementById('fox');
+            const dialogueBox = document.getElementById('dialogue-box');
+            const dialogueText = document.getElementById('dialogue-text');
+            const dialogueOptions = document.getElementById('dialogue-options');
+            const optionAdmin = document.getElementById('option-admin');
+            const optionNotAdmin = document.getElementById('option-not-admin');
+            const passwordInput = document.getElementById('password-input');
+            const adminPassword = document.getElementById('admin-password');
+            const submitPassword = document.getElementById('submit-password');
+
+            let direction = 1; // 1 for right, -1 for left
+            let position = 0;
+            const speed = 5;
+            let screenWidth = window.innerWidth;
+            let isRunning = true;
+            let animationId = null;
+
+            // Get admin settings
+            const adminSettings = await window.dataManager.getAdminSettings();
+            // The correct admin password
+            const CORRECT_PASSWORD = adminSettings.adminCode || "0988131688";
+
+            function updateFoxPosition() {
+                if (!isRunning) {
+                    return;
+                }
+
+                position += speed * direction;
+
+                // Change direction when reaching screen edges
+                if (position > screenWidth - 100) {
+                    direction = -1;
+                    fox.style.transform = 'scaleX(-1)'; // Flip horizontally
+                } else if (position < 0) {
+                    direction = 1;
+                    fox.style.transform = 'scaleX(1)'; // Reset orientation
+                }
+
+                fox.style.left = position + 'px';
+
+                animationId = requestAnimationFrame(updateFoxPosition);
+            }
+
+            // Start the animation
+            updateFoxPosition();
+
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                screenWidth = window.innerWidth;
+            });
+
+            // Handle fox hover
+            fox.addEventListener('mouseenter', function() {
+                isRunning = false;
+                if (animationId) {
+                    cancelAnimationFrame(animationId);
+                    animationId = null;
+                }
+            });
+
+            fox.addEventListener('mouseleave', function() {
+                if (!dialogueBox.classList.contains('active')) {
+                    isRunning = true;
+                    updateFoxPosition();
+                }
+            });
+
+            // Reset dialogue to initial state
+            function resetDialogue() {
+                dialogueText.textContent = "Hello there! This area is restricted. Are you an admin?";
+                dialogueOptions.style.display = "flex";
+                passwordInput.style.display = "none";
+                adminPassword.value = "";
+            }
+
+            // Handle fox click for dialogue
+            fox.addEventListener('click', function(e) {
+                // Reset dialogue to initial state
+                resetDialogue();
+
+                // Show the dialogue box
+                dialogueBox.classList.add('active');
+                isRunning = false;
+
+                // Prevent event bubbling
+                e.stopPropagation();
+            });
+
+            // Handle "Yes, I'm an admin" option
+            optionAdmin.addEventListener('click', function() {
+                dialogueText.textContent = "Please enter the admin password:";
+                dialogueOptions.style.display = "none";
+                passwordInput.style.display = "block";
+            });
+
+            // Handle "No, I'm someone else" option
+            optionNotAdmin.addEventListener('click', function() {
+                dialogueText.textContent = "I see. This domain is off-limits to anyone but Admin. Please leave immediately or face the consequences.";
+                dialogueOptions.style.display = "none";
+
+                // Close dialogue after a delay
+                setTimeout(function() {
+                    dialogueBox.classList.remove('active');
+
+                    // Resume running if not hovering
+                    if (!fox.matches(':hover')) {
+                        isRunning = true;
+                        updateFoxPosition();
+                    }
+                }, 3000);
+            });
+
+            // Domain Expansion elements
+            const domainOverlay = document.getElementById('domain-overlay');
+            const domainParticles = document.getElementById('domain-particles');
+            const energyDistortion = document.getElementById('energy-distortion');
+            const foxAura = document.getElementById('fox-aura');
+            const floatingFox = document.getElementById('floating-fox');
+            const foxBlindfold = document.getElementById('fox-blindfold');
+            const foxEyes = document.getElementById('fox-eyes');
+            const infinitySymbol = document.getElementById('infinity-symbol');
+            const handGesture = document.getElementById('hand-gesture');
+            const blueEnergy = document.getElementById('blue-energy');
+            const redEnergy = document.getElementById('red-energy');
+            const purpleEnergy = document.getElementById('purple-energy');
+            const energyRings = document.getElementById('energy-rings');
+            const mergeFlash = document.getElementById('merge-flash');
+            const powerSurge = document.getElementById('power-surge');
+            const impactFlash = document.getElementById('impact-flash');
+            const crackOverlay = document.getElementById('crack-overlay');
+            const blackout = document.getElementById('blackout');
+            const accessDenied = document.getElementById('access-denied');
+            const deathScreen = document.getElementById('death-screen');
+            const restartButton = document.getElementById('restart-button');
+            const body = document.body;
+
+            // Anime quotes
+            const quoteInfinity = document.getElementById('quote-infinity');
+            const quoteBlueRed = document.getElementById('quote-blue-red');
+            const quoteHollowPurple = document.getElementById('quote-hollow-purple');
+            const quoteLaunch = document.getElementById('quote-launch');
+            const quoteImpact = document.getElementById('quote-impact');
+            const quoteFinal = document.getElementById('quote-final');
+
+            // Restart button event listener
+            restartButton.addEventListener('click', function() {
+                location.reload();
+            });
+
+            // Domain Expansion sequence
+            function executeDomainExpansion() {
+                // Hide dialogue box
+                dialogueBox.classList.remove('active');
+
+                // Step 1: Float fox to center
+                floatingFox.classList.add('active');
+
+                // Step 2: Add blindfold and aura to fox
+                setTimeout(() => {
+                    foxBlindfold.classList.add('active');
+                    foxAura.classList.add('active');
+                }, 1500);
+
+                // Step 3: Start Domain Expansion sequence
+                setTimeout(() => {
+                    // Dramatic blindfold removal (like Gojo)
+                    foxBlindfold.classList.add('removed');
+
+                    // Show glowing eyes (Six Eyes)
+                    setTimeout(() => {
+                        foxEyes.classList.add('active');
+                        floatingFox.classList.add('powered'); // Add blue glow to fox
+                    }, 500);
+
+                    // Start energy distortion (after eyes appear)
+                    setTimeout(() => {
+                        energyDistortion.classList.add('active');
+
+                        // Add domain particles with a delay
+                        setTimeout(() => {
+                            domainParticles.classList.add('active');
+                        }, 500);
+                    }, 1000);
+
+                    // White background (Domain Expansion: Unlimited Void)
+                    setTimeout(() => {
+                        domainOverlay.classList.add('active');
+                    }, 1000);
+
+                    // Show infinity symbol (Limitless) - after domain expansion
+                    setTimeout(() => {
+                        // Make sure it's clean before showing
+                        infinitySymbol.textContent = '∞';
+                        infinitySymbol.classList.add('active');
+
+                        // Show first quote
+                        quoteInfinity.classList.add('active');
+
+                        // Fade out infinity and quote after a moment
+                        setTimeout(() => {
+                            infinitySymbol.style.opacity = '0';
+                            quoteInfinity.classList.remove('active');
+                        }, 3000);
+                    }, 2000);
+                }, 3000);
+
+                // Step 4: Show energy balls (Blue and Red techniques)
+                setTimeout(() => {
+                    // Show blue and red energy balls
+                    blueEnergy.style.opacity = '1';
+                    redEnergy.style.opacity = '1';
+
+                    // Start orbiting animation with separate keyframes
+                    blueEnergy.style.animation = 'orbit 1.5s linear infinite';
+                    redEnergy.style.animation = 'orbit-reverse 1.5s linear infinite';
+
+                    // Show Blue and Red quote
+                    setTimeout(() => {
+                        quoteBlueRed.classList.add('active');
+
+                        // Hide quote after a moment
+                        setTimeout(() => {
+                            quoteBlueRed.classList.remove('active');
+                        }, 3000);
+                    }, 1000);
+                }, 7500);
+
+                // Step 5: Start approaching animation (balls get closer)
+                setTimeout(() => {
+                    // Clear previous animations
+                    blueEnergy.style.animation = '';
+                    redEnergy.style.animation = '';
+
+                    // Force reflow to ensure animation restart
+                    void blueEnergy.offsetWidth;
+                    void redEnergy.offsetWidth;
+
+                    // Change to approaching animation with separate keyframes
+                    blueEnergy.style.animation = 'approach 3s linear forwards';
+                    redEnergy.style.animation = 'approach-reverse 3s linear forwards';
+                }, 10000);
+
+                // Step 6: Merge with flash effect (like in the anime)
+                setTimeout(() => {
+                    // Flash effect for merging
+                    mergeFlash.style.animation = 'merge-flash 0.8s forwards';
+
+                    // Energy rings expansion
+                    energyRings.classList.add('active');
+
+                    // Show Hollow Purple quote
+                    quoteHollowPurple.classList.add('active');
+
+                    // Hide red and blue with a slight delay
+                    setTimeout(() => {
+                        blueEnergy.style.opacity = '0';
+                        redEnergy.style.animation = '';
+                        redEnergy.style.opacity = '0';
+                        blueEnergy.style.animation = '';
+
+                        // Hide quote after a moment
+                        setTimeout(() => {
+                            quoteHollowPurple.classList.remove('active');
+                        }, 1500);
+
+                        // Show and grow purple (Hollow Purple)
+                        setTimeout(() => {
+                            purpleEnergy.style.opacity = '1';
+                            purpleEnergy.style.animation = 'grow 1.2s forwards';
+
+                            // After growing, pause for tension (fox holding the energy)
+                            setTimeout(() => {
+                                // Clear previous animation and force reflow
+                                purpleEnergy.style.animation = '';
+                                void purpleEnergy.offsetWidth;
+
+                                // Add ready-to-launch class for pulsing effect
+                                purpleEnergy.classList.add('ready-to-launch');
+
+                                // Show hand gesture for center zone
+                                handGesture.classList.add('active');
+                                setTimeout(() => {
+                                    handGesture.classList.add('prepare');
+                                }, 100);
+
+                                // Fox prepares to launch (slight pull back)
+                                floatingFox.style.animation = 'launch-preparation 0.5s forwards';
+
+                                // Add another energy ring for effect
+                                energyRings.classList.remove('active');
+                                setTimeout(() => {
+                                    energyRings.classList.add('active');
+                                }, 50);
+                            }, 1300);
+                        }, 100);
+                    }, 300);
+                }, 13000);
+
+                // Step 7: Fox launches the purple energy at the player
+                setTimeout(() => {
+                    // Remove ready-to-launch class
+                    purpleEnergy.classList.remove('ready-to-launch');
+
+                    // Show launch quote
+                    quoteLaunch.classList.add('active');
+
+                    // Clear previous animation and force reflow
+                    purpleEnergy.style.animation = '';
+                    void purpleEnergy.offsetWidth;
+
+                    // Reset fox animation
+                    floatingFox.style.animation = '';
+
+                    // Animate hand gesture for launch
+                    handGesture.classList.remove('prepare');
+                    handGesture.classList.add('launch');
+
+                    // Launch animation - rapidly flying towards player
+                    purpleEnergy.style.animation = 'launch-towards-player 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) forwards';
+
+                    // Add energy rings for dramatic effect
+                    energyRings.classList.remove('active');
+                    setTimeout(() => {
+                        energyRings.classList.add('active');
+                    }, 50);
+
+                    // Increase energy distortion
+                    energyDistortion.style.opacity = '0.8';
+
+                    // Power surge
+                    setTimeout(() => {
+                        powerSurge.classList.add('active');
+
+                        // Hide launch quote
+                        quoteLaunch.classList.remove('active');
+                    }, 400);
+                }, 15500);
+
+                // Step 8: Impact with screen
+                setTimeout(() => {
+                    // Show impact quote
+                    quoteImpact.classList.add('active');
+
+                    // Bright flash at impact
+                    impactFlash.style.animation = 'impact-flash 0.3s forwards';
+
+                    // Remove any existing shake classes first
+                    body.classList.remove('violent-shake');
+                    body.classList.remove('screen-shake');
+                    body.classList.remove('extreme-shake');
+
+                    // Force reflow
+                    void body.offsetWidth;
+
+                    // Extreme screen shake
+                    body.classList.add('extreme-shake');
+
+                    // Show crack overlay
+                    setTimeout(() => {
+                        crackOverlay.classList.add('active');
+
+                        // Flash white again
+                        impactFlash.style.animation = '';
+                        void impactFlash.offsetWidth;
+                        impactFlash.style.animation = 'impact-flash 0.3s forwards';
+
+                        // Final energy ring
+                        energyRings.classList.remove('active');
+                        setTimeout(() => {
+                            energyRings.classList.add('active');
+                        }, 50);
+                    }, 200);
+
+                    // Crash animation
+                    setTimeout(() => {
+                        // Clear previous animation and force reflow
+                        purpleEnergy.style.animation = '';
+                        void purpleEnergy.offsetWidth;
+
+                        // Crash animation
+                        purpleEnergy.style.animation = 'crash 0.5s forwards';
+                    }, 300);
+
+                    // Blackout effect
+                    setTimeout(() => {
+                        // Hide impact quote
+                        quoteImpact.classList.remove('active');
+
+                        // Show final quote
+                        quoteFinal.classList.add('active');
+
+                        // Blackout
+                        setTimeout(() => {
+                            blackout.classList.add('active');
+
+                            // Hide final quote after blackout
+                            setTimeout(() => {
+                                quoteFinal.classList.remove('active');
+                            }, 1000);
+                        }, 1500);
+                    }, 800);
+                }, 16500);
+
+                // Step 9: Show death screen after blackout
+                setTimeout(() => {
+                    // Remove all effects in the correct order
+                    body.classList.remove('screen-shake');
+                    body.classList.remove('violent-shake');
+                    body.classList.remove('extreme-shake');
+
+                    // Clear all animations
+                    purpleEnergy.style.animation = '';
+                    blueEnergy.style.animation = '';
+                    redEnergy.style.animation = '';
+
+                    // Hide all elements
+                    purpleEnergy.style.opacity = '0';
+                    blueEnergy.style.opacity = '0';
+                    redEnergy.style.opacity = '0';
+                    powerSurge.classList.remove('active');
+                    energyRings.classList.remove('active');
+
+                    // Remove background effects
+                    domainOverlay.classList.remove('active');
+                    domainParticles.classList.remove('active');
+                    energyDistortion.classList.remove('active');
+
+                    // Remove fox elements
+                    floatingFox.classList.remove('active');
+                    floatingFox.classList.remove('powered');
+                    foxAura.classList.remove('active');
+                    foxEyes.classList.remove('active');
+                    foxBlindfold.classList.remove('active');
+                    foxBlindfold.classList.remove('removed');
+
+                    // Make sure all quotes are removed
+                    quoteInfinity.classList.remove('active');
+                    quoteBlueRed.classList.remove('active');
+                    quoteHollowPurple.classList.remove('active');
+                    quoteLaunch.classList.remove('active');
+                    quoteImpact.classList.remove('active');
+                    quoteFinal.classList.remove('active');
+
+                    // Remove hand gesture
+                    handGesture.classList.remove('active');
+                    handGesture.classList.remove('prepare');
+                    handGesture.classList.remove('launch');
+
+                    // Show death screen with slight delay for dramatic effect
+                    setTimeout(() => {
+                        // Remove crack and blackout
+                        crackOverlay.classList.remove('active');
+                        blackout.classList.remove('active');
+
+                        // Show death screen
+                        deathScreen.classList.add('active');
+                    }, 1500);
+                }, 18000);
+            }
+
+            // Admin panel variables
+            const adminPanel = document.getElementById('admin-panel');
+            const adminTabs = document.querySelectorAll('.admin-tab');
+            const adminTabContents = document.querySelectorAll('.admin-tab-content');
+            const adminMessage = document.getElementById('admin-message');
+            const adminLogout = document.getElementById('admin-logout');
+
+            // News system variables
+            const newsContainer = document.getElementById('news-container');
+            const newsContent = document.getElementById('news-content');
+            const adminNewsList = document.getElementById('admin-news-list');
+            const recentPostsList = document.getElementById('recent-posts-list');
+            const newsForm = document.getElementById('news-form');
+            const newsTitleInput = document.getElementById('news-title');
+            const newsCategorySelect = document.getElementById('news-category');
+            const newsCoverImageInput = document.getElementById('news-cover-image');
+            const newsContentEditor = document.getElementById('news-content-editor');
+            const newsSubmitBtn = document.getElementById('news-submit');
+            const submitText = document.getElementById('submit-text');
+            const editIdInput = document.getElementById('edit-id');
+            const clearFormBtn = document.getElementById('clear-form');
+            const galleryInputs = document.getElementById('gallery-inputs');
+            const addGalleryImageBtn = document.getElementById('add-gallery-image');
+
+            // Dashboard variables
+            const totalPostsCount = document.getElementById('total-posts-count');
+            const robloxPostsCount = document.getElementById('roblox-posts-count');
+            const runnerPostsCount = document.getElementById('runner-posts-count');
+
+            // Social media variables
+            const socialLinksForm = document.getElementById('social-links-form');
+            const youtubeLinkInput = document.getElementById('youtube-link');
+            const discordLinkInput = document.getElementById('discord-link');
+            const socialLinksSubmit = document.getElementById('social-links-submit');
+            const youtubeIcon = document.querySelector('.social-icon.youtube');
+            const discordIcon = document.querySelector('.social-icon.discord');
+
+            // Settings variables
+            const siteSettingsForm = document.getElementById('site-settings-form');
+            const siteTitleInput = document.getElementById('site-title');
+            const newsHeaderInput = document.getElementById('news-header');
+            const siteTitle = document.querySelector('.title');
+            const newsHeader = document.querySelector('.news-header');
+            const adminSettingsForm = document.getElementById('admin-settings-form');
+            const adminCodeInput = document.getElementById('admin-code');
+
+            // Search and filter variables
+            const searchInput = document.getElementById('search-input');
+            const searchButton = document.getElementById('search-button');
+            const categoryFilters = document.querySelectorAll('.category-filter');
+
+            // Current filter state
+            let currentSearchTerm = '';
+            let currentCategory = 'all';
+
+            // Gallery modal elements
+            const galleryModal = document.getElementById('gallery-modal');
+            const galleryFullImage = document.getElementById('gallery-full-image');
+            const galleryPrevBtn = document.getElementById('gallery-prev');
+            const galleryNextBtn = document.getElementById('gallery-next');
+            const galleryCloseBtn = document.getElementById('gallery-close');
+
+            // Gallery variables
+            let currentGalleryImages = [];
+            let currentImageIndex = 0;
+
+            // Initialize news array from data manager
+            let newsItems = [];
+
+            // Load news items
+            async function loadNewsItems() {
+                newsItems = await window.dataManager.getNewsItems();
+                displayNews();
+                displayAdminNews();
+                updateDashboard();
+            }
+
+            // Load news items on initialization
+            loadNewsItems();
+
+            // Load social media links from data manager
+            async function loadSocialLinks() {
+                const socialLinks = await window.dataManager.getSocialLinks();
+
+                // Update the form inputs
+                youtubeLinkInput.value = socialLinks.youtube;
+                discordLinkInput.value = socialLinks.discord;
+
+                // Update the actual links
+                youtubeIcon.href = socialLinks.youtube;
+                discordIcon.href = socialLinks.discord;
+            }
+
+            // Handle social links form submission
+            socialLinksForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                const youtubeLink = youtubeLinkInput.value.trim();
+                const discordLink = discordLinkInput.value.trim();
+
+                // Validate URLs
+                if (!youtubeLink || !discordLink) {
+                    showAdminMessage('Please fill in both social media URLs', 'error');
+                    return;
+                }
+
+                // Save to data manager
+                const socialLinks = {
+                    youtube: youtubeLink,
+                    discord: discordLink
+                };
+
+                const success = await window.dataManager.saveSocialLinks(socialLinks);
+
+                if (success) {
+                    // Update the actual links
+                    youtubeIcon.href = youtubeLink;
+                    discordIcon.href = discordLink;
+                    showAdminMessage('Social media links updated successfully', 'success');
+                } else {
+                    showAdminMessage('Failed to update social media links', 'error');
+                }
+            });
+
+            // Tab switching functionality
+            adminTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // Remove active class from all tabs
+                    adminTabs.forEach(t => t.classList.remove('active'));
+
+                    // Add active class to clicked tab
+                    this.classList.add('active');
+
+                    // Hide all tab contents
+                    adminTabContents.forEach(content => content.classList.remove('active'));
+
+                    // Show the corresponding tab content
+                    const tabId = this.getAttribute('data-tab');
+                    document.getElementById(tabId + '-tab').classList.add('active');
+
+                    // If switching to dashboard, update the dashboard stats
+                    if (tabId === 'dashboard') {
+                        updateDashboard();
+                    }
+                });
+            });
+
+            // Function to update dashboard statistics
+            function updateDashboard() {
+                // Update post counts
+                totalPostsCount.textContent = newsItems.length;
+
+                const robloxScriptPosts = newsItems.filter(item => item.category === 'roblox-script');
+                robloxPostsCount.textContent = robloxScriptPosts.length;
+
+                const runnerPosts = newsItems.filter(item => item.category === 'runner');
+                runnerPostsCount.textContent = runnerPosts.length;
+
+                // Display recent posts (up to 5)
+                displayRecentPosts();
+            }
+
+            // Function to display recent posts in the dashboard
+            function displayRecentPosts() {
+                if (newsItems.length === 0) {
+                    recentPostsList.innerHTML = '<div class="news-list-item">No posts available yet.</div>';
+                    return;
+                }
+
+                recentPostsList.innerHTML = '';
+
+                // Get the 5 most recent posts
+                const recentItems = [...newsItems].slice(0, 5);
+
+                recentItems.forEach(item => {
+                    const date = new Date(item.date);
+                    const formattedDate = date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+
+                    const categoryLabel = item.category === 'roblox-script' ? 'Roblox Script' : 'Runner';
+                    const categoryClass = item.category;
+
+                    // Create a preview of the content (first 100 characters)
+                    const contentPreview = item.content.length > 100
+                        ? item.content.substring(0, 100) + '...'
+                        : item.content;
+
+                    const newsItem = document.createElement('div');
+                    newsItem.className = 'news-list-item';
+
+                    newsItem.innerHTML = `
+                        <div class="news-list-title">
+                            ${item.title}
+                            <span class="news-list-category ${categoryClass}">${categoryLabel}</span>
+                        </div>
+                        <div class="news-list-date">
+                            <span class="icon">🕒</span> ${formattedDate}${item.edited ? ' (edited)' : ''}
+                        </div>
+                        <div class="news-list-preview">${contentPreview}</div>
+                    `;
+
+                    recentPostsList.appendChild(newsItem);
+                });
+            }
+
+            // Clear form button functionality
+            clearFormBtn.addEventListener('click', function() {
+                // Show confirmation dialog
+                if (confirm('Are you sure you want to clear the form? All unsaved changes will be lost.')) {
+                    resetForm();
+                }
+            });
+
+            // Function to reset the form
+            function resetForm() {
+                newsForm.reset();
+                editIdInput.value = '';
+                submitText.textContent = 'Add Post';
+
+                // Reset gallery inputs
+                while (galleryInputs.children.length > 1) {
+                    galleryInputs.removeChild(galleryInputs.lastChild);
+                }
+                document.querySelector('.gallery-image-url').value = '';
+
+                // Show success message
+                showAdminMessage('Form cleared successfully', 'info');
+            }
+
+            // Site settings form submission
+            siteSettingsForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                const newSiteTitle = siteTitleInput.value.trim();
+                const newNewsHeader = newsHeaderInput.value.trim();
+
+                if (!newSiteTitle || !newNewsHeader) {
+                    showAdminMessage('Please fill in all fields', 'error');
+                    return;
+                }
+
+                // Save to data manager
+                const settings = {
+                    siteTitle: newSiteTitle,
+                    newsHeader: newNewsHeader
+                };
+
+                const success = await window.dataManager.saveSiteSettings(settings);
+
+                if (success) {
+                    // Update the site title and news header
+                    siteTitle.textContent = newSiteTitle;
+                    newsHeader.textContent = newNewsHeader;
+                    showAdminMessage('Site settings updated successfully', 'success');
+                } else {
+                    showAdminMessage('Failed to update site settings', 'error');
+                }
+            });
+
+            // Admin settings form submission
+            adminSettingsForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                const newAdminCode = adminCodeInput.value.trim();
+
+                if (!newAdminCode) {
+                    showAdminMessage('Please enter a new access code', 'error');
+                    return;
+                }
+
+                // Save to data manager
+                const settings = {
+                    adminCode: newAdminCode
+                };
+
+                const success = await window.dataManager.saveAdminSettings(settings);
+
+                if (success) {
+                    showAdminMessage('Admin access code updated successfully', 'success');
+                    adminCodeInput.value = '';
+                } else {
+                    showAdminMessage('Failed to update admin access code', 'error');
+                }
+            });
+
+            // Function to load site settings
+            async function loadSiteSettings() {
+                const settings = await window.dataManager.getSiteSettings();
+
+                if (settings.siteTitle) {
+                    siteTitle.textContent = settings.siteTitle;
+                    siteTitleInput.value = settings.siteTitle;
+                }
+
+                if (settings.newsHeader) {
+                    newsHeader.textContent = settings.newsHeader;
+                    newsHeaderInput.value = settings.newsHeader;
+                }
+            }
+
+            // Load social links on page load
+            loadSocialLinks();
+
+            // Load site settings on page load
+            loadSiteSettings();
+
+            // Update dashboard on page load
+            updateDashboard();
+
+            // Display news on page load
+            displayNews();
+
+            // Search functionality
+            searchButton.addEventListener('click', function() {
+                currentSearchTerm = searchInput.value.trim();
+                displayNews();
+            });
+
+            // Allow pressing Enter to search
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    currentSearchTerm = searchInput.value.trim();
+                    displayNews();
+                }
+            });
+
+            // Category filter functionality
+            categoryFilters.forEach(filter => {
+                filter.addEventListener('click', function() {
+                    // Remove active class from all filters
+                    categoryFilters.forEach(f => f.classList.remove('active'));
+
+                    // Add active class to clicked filter
+                    this.classList.add('active');
+
+                    // Update current category
+                    currentCategory = this.dataset.category;
+
+                    // Update display
+                    displayNews();
+                });
+            });
+
+            // Handle password submission
+            submitPassword.addEventListener('click', function() {
+                const enteredPassword = adminPassword.value.trim();
+
+                if (enteredPassword === CORRECT_PASSWORD) {
+                    // Show welcome message first
+                    dialogueText.textContent = "Welcome, Admin! Accessing your admin panel...";
+                    passwordInput.style.display = "none";
+
+                    // After a short delay, hide dialogue and show admin panel
+                    setTimeout(function() {
+                        // Hide dialogue box
+                        dialogueBox.classList.remove('active');
+
+                        // Set admin session
+                        sessionStorage.setItem('jjkAdmin', 'true');
+
+                        // Show admin panel
+                        adminPanel.classList.add('active');
+
+                        // Load news items in admin panel
+                        displayAdminNews();
+                    }, 1500);
+                } else {
+                    dialogueText.textContent = "Incorrect binding vow. DOMAIN EXPANSION: INFINITE VOID!";
+
+                    // Start Domain Expansion sequence after a short delay
+                    setTimeout(executeDomainExpansion, 2000);
+                }
+            });
+
+            // Admin logout
+            adminLogout.addEventListener('click', function() {
+                // Remove admin session
+                sessionStorage.removeItem('jjkAdmin');
+
+                // Hide admin panel
+                adminPanel.classList.remove('active');
+            });
+
+            // Check if user is admin on page load
+            if (sessionStorage.getItem('jjkAdmin') === 'true') {
+                adminPanel.classList.add('active');
+                displayAdminNews();
+            }
+
+            // Add gallery image input
+            addGalleryImageBtn.addEventListener('click', function() {
+                const newGroup = document.createElement('div');
+                newGroup.className = 'gallery-input-group';
+                newGroup.innerHTML = `
+                    <input type="text" class="gallery-image-url" placeholder="Gallery Image URL">
+                    <button type="button" class="remove-gallery-image">Remove</button>
+                `;
+                galleryInputs.appendChild(newGroup);
+
+                // Add event listener to the new remove button
+                const removeBtn = newGroup.querySelector('.remove-gallery-image');
+                removeBtn.addEventListener('click', function() {
+                    galleryInputs.removeChild(newGroup);
+                });
+            });
+
+            // Add event listener to the initial remove button
+            document.querySelector('.remove-gallery-image').addEventListener('click', function() {
+                const input = this.previousElementSibling;
+                input.value = '';
+            });
+
+            // Handle news form submission
+            newsForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                const title = newsTitleInput.value.trim();
+                const category = newsCategorySelect.value.trim();
+                const content = newsContentEditor.value.trim();
+                const coverImageUrl = newsCoverImageInput.value.trim();
+                const editId = editIdInput.value;
+
+                // Get gallery images
+                const galleryImages = [];
+                document.querySelectorAll('.gallery-image-url').forEach(input => {
+                    const url = input.value.trim();
+                    if (url) {
+                        galleryImages.push(url);
+                    }
+                });
+
+                if (!title || !content || !category) {
+                    showAdminMessage('Please fill in all required fields', 'error');
+                    return;
+                }
+
+                if (editId) {
+                    // Edit existing news
+                    const index = newsItems.findIndex(item => item.id === editId);
+                    if (index !== -1) {
+                        newsItems[index].title = title;
+                        newsItems[index].category = category;
+                        newsItems[index].content = content;
+                        newsItems[index].coverImageUrl = coverImageUrl;
+                        newsItems[index].galleryImages = galleryImages;
+                        newsItems[index].edited = new Date().toISOString();
+                    }
+
+                    // Save to data manager
+                    const success = await window.dataManager.saveNewsItems(newsItems);
+
+                    if (success) {
+                        showAdminMessage('News updated successfully', 'success');
+                    } else {
+                        showAdminMessage('Failed to update news', 'error');
+                        return;
+                    }
+
+                    editIdInput.value = '';
+                    newsSubmitBtn.textContent = 'Add News';
+                } else {
+                    // Add new news
+                    const newNews = {
+                        id: Date.now().toString(),
+                        title: title,
+                        category: category,
+                        content: content,
+                        coverImageUrl: coverImageUrl,
+                        galleryImages: galleryImages,
+                        date: new Date().toISOString(),
+                        edited: null
+                    };
+
+                    newsItems.unshift(newNews); // Add to beginning of array
+
+                    // Save to data manager
+                    const success = await window.dataManager.saveNewsItems(newsItems);
+
+                    if (success) {
+                        showAdminMessage('News added successfully', 'success');
+                    } else {
+                        showAdminMessage('Failed to add news', 'error');
+                        // Remove the new item since saving failed
+                        newsItems.shift();
+                        return;
+                    }
+                }
+
+                // Update displays
+                displayNews();
+                displayAdminNews();
+
+                // Reset form
+                newsForm.reset();
+
+                // Reset gallery inputs
+                while (galleryInputs.children.length > 1) {
+                    galleryInputs.removeChild(galleryInputs.lastChild);
+                }
+                document.querySelector('.gallery-image-url').value = '';
+            });
+
+            // Function to display news in the main container
+            function displayNews() {
+                if (newsItems.length === 0) {
+                    newsContent.innerHTML = '<div class="news-item"><div class="news-title">No News Available</div><div class="news-content">Check back later for updates on the jujutsu world.</div></div>';
+                    return;
+                }
+
+                // Filter news items based on search term and category
+                const filteredItems = newsItems.filter(item => {
+                    // Filter by search term
+                    const matchesSearch = currentSearchTerm === '' ||
+                        item.title.toLowerCase().includes(currentSearchTerm.toLowerCase()) ||
+                        item.content.toLowerCase().includes(currentSearchTerm.toLowerCase());
+
+                    // Filter by category
+                    const matchesCategory = currentCategory === 'all' || item.category === currentCategory;
+
+                    return matchesSearch && matchesCategory;
+                });
+
+                newsContent.innerHTML = '';
+
+                if (filteredItems.length === 0) {
+                    newsContent.innerHTML = '<div class="news-item"><div class="news-title">No Results Found</div><div class="news-content">No news items match your search criteria. Try different keywords or filters.</div></div>';
+                    return;
+                }
+
+                filteredItems.forEach(item => {
+                    const date = new Date(item.date);
+                    const formattedDate = date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+
+                    const newsItem = document.createElement('div');
+                    newsItem.className = 'news-item';
+                    newsItem.dataset.id = item.id;
+
+                    // Create cover image HTML if available
+                    const coverImageHtml = item.coverImageUrl ?
+                        `<div class="news-cover-container">
+                            <img src="${item.coverImageUrl}" alt="${item.title}" class="news-cover-image">
+                         </div>` : '';
+
+                    // Create gallery HTML if available
+                    let galleryHtml = '';
+                    if (item.galleryImages && item.galleryImages.length > 0) {
+                        galleryHtml = '<div class="gallery-section">';
+                        galleryHtml += '<h3 class="gallery-title">Image Gallery</h3>';
+                        galleryHtml += '<div class="news-gallery">';
+                        item.galleryImages.forEach((imgUrl, index) => {
+                            galleryHtml += `<img src="${imgUrl}" alt="Gallery image ${index+1}" class="gallery-thumbnail" data-index="${index}">`;
+                        });
+                        galleryHtml += '</div></div>';
+                    }
+
+                    // Format content with paragraphs
+                    const formattedContent = item.content.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>');
+
+                    // Create category badge
+                    const categoryBadge = item.category ?
+                        `<span class="category-badge ${item.category}">${item.category === 'roblox-script' ? 'Roblox Script' : 'Runner'}</span>` : '';
+
+                    newsItem.innerHTML = `
+                        <div class="news-title">${item.title}${categoryBadge}</div>
+                        <div class="news-date">${formattedDate}${item.edited ? ' (edited)' : ''}</div>
+                        ${coverImageHtml}
+                        <div class="news-content content-truncated">
+                            <p>${formattedContent}</p>
+                            ${galleryHtml}
+                        </div>
+                        <button class="read-more-btn">Read More</button>
+                    `;
+
+                    newsContent.appendChild(newsItem);
+
+                    // Add event listener to Read More button
+                    const readMoreBtn = newsItem.querySelector('.read-more-btn');
+                    const contentDiv = newsItem.querySelector('.news-content');
+
+                    readMoreBtn.addEventListener('click', function() {
+                        if (contentDiv.classList.contains('content-truncated')) {
+                            contentDiv.classList.remove('content-truncated');
+                            readMoreBtn.textContent = 'Show Less';
+                        } else {
+                            contentDiv.classList.add('content-truncated');
+                            readMoreBtn.textContent = 'Read More';
+                        }
+                    });
+
+                    // Add event listeners to gallery thumbnails
+                    if (item.galleryImages && item.galleryImages.length > 0) {
+                        const thumbnails = newsItem.querySelectorAll('.gallery-thumbnail');
+                        thumbnails.forEach(thumb => {
+                            thumb.addEventListener('click', function() {
+                                openGallery(item.galleryImages, parseInt(this.dataset.index));
+                            });
+                        });
+                    }
+                });
+            }
+
+            // Function to open gallery modal
+            function openGallery(images, startIndex) {
+                if (!images || images.length === 0) return;
+
+                currentGalleryImages = images;
+                currentImageIndex = startIndex || 0;
+
+                // Set the initial image
+                updateGalleryImage();
+
+                // Show the modal
+                galleryModal.classList.add('active');
+
+                // Add event listeners for gallery controls
+                galleryPrevBtn.addEventListener('click', showPreviousImage);
+                galleryNextBtn.addEventListener('click', showNextImage);
+                galleryCloseBtn.addEventListener('click', closeGallery);
+
+                // Add keyboard navigation
+                document.addEventListener('keydown', handleGalleryKeyPress);
+            }
+
+            // Function to update the gallery image
+            function updateGalleryImage() {
+                galleryFullImage.src = currentGalleryImages[currentImageIndex];
+
+                // Update button states
+                galleryPrevBtn.disabled = currentImageIndex === 0;
+                galleryNextBtn.disabled = currentImageIndex === currentGalleryImages.length - 1;
+            }
+
+            // Function to show previous image
+            function showPreviousImage() {
+                if (currentImageIndex > 0) {
+                    currentImageIndex--;
+                    updateGalleryImage();
+                }
+            }
+
+            // Function to show next image
+            function showNextImage() {
+                if (currentImageIndex < currentGalleryImages.length - 1) {
+                    currentImageIndex++;
+                    updateGalleryImage();
+                }
+            }
+
+            // Function to close gallery
+            function closeGallery() {
+                galleryModal.classList.remove('active');
+
+                // Remove event listeners
+                galleryPrevBtn.removeEventListener('click', showPreviousImage);
+                galleryNextBtn.removeEventListener('click', showNextImage);
+                galleryCloseBtn.removeEventListener('click', closeGallery);
+                document.removeEventListener('keydown', handleGalleryKeyPress);
+            }
+
+            // Function to handle keyboard navigation in gallery
+            function handleGalleryKeyPress(e) {
+                if (e.key === 'ArrowLeft') {
+                    showPreviousImage();
+                } else if (e.key === 'ArrowRight') {
+                    showNextImage();
+                } else if (e.key === 'Escape') {
+                    closeGallery();
+                }
+            }
+
+            // Function to display news in the admin panel
+            function displayAdminNews() {
+                if (newsItems.length === 0) {
+                    adminNewsList.innerHTML = '<div class="news-list-item">No posts available</div>';
+                    return;
+                }
+
+                adminNewsList.innerHTML = '';
+
+                newsItems.forEach(item => {
+                    const date = new Date(item.date);
+                    const formattedDate = date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+
+                    const categoryLabel = item.category === 'roblox-script' ? 'Roblox Script' : 'Runner';
+                    const categoryClass = item.category;
+
+                    // Create a preview of the content (first 100 characters)
+                    const contentPreview = item.content.length > 100
+                        ? item.content.substring(0, 100) + '...'
+                        : item.content;
+
+                    const newsItem = document.createElement('div');
+                    newsItem.className = 'news-list-item';
+                    newsItem.dataset.id = item.id;
+
+                    newsItem.innerHTML = `
+                        <div class="news-list-title">
+                            ${item.title}
+                            <span class="news-list-category ${categoryClass}">${categoryLabel}</span>
+                        </div>
+                        <div class="news-list-date">
+                            <span class="icon">🕒</span> ${formattedDate}${item.edited ? ' (edited)' : ''}
+                        </div>
+                        <div class="news-list-preview">${contentPreview}</div>
+                        <div class="news-list-actions">
+                            <button class="edit" data-id="${item.id}">
+                                <span class="icon">✏️</span> Edit
+                            </button>
+                            <button class="delete" data-id="${item.id}">
+                                <span class="icon">🗑️</span> Delete
+                            </button>
+                        </div>
+                    `;
+
+                    adminNewsList.appendChild(newsItem);
+
+                    // Make the entire item clickable for editing
+                    newsItem.addEventListener('click', function(e) {
+                        // Don't trigger if clicking on a button
+                        if (e.target.tagName !== 'BUTTON' && !e.target.closest('button')) {
+                            const id = this.dataset.id;
+                            editNews(id);
+
+                            // Switch to the create post tab
+                            adminTabs.forEach(t => t.classList.remove('active'));
+                            adminTabContents.forEach(content => content.classList.remove('active'));
+
+                            const createPostTab = document.querySelector('.admin-tab[data-tab="create-post"]');
+                            createPostTab.classList.add('active');
+                            document.getElementById('create-post-tab').classList.add('active');
+                        }
+                    });
+                });
+
+                // Add event listeners to edit and delete buttons
+                document.querySelectorAll('.news-list-actions .edit').forEach(button => {
+                    button.addEventListener('click', function(e) {
+                        e.stopPropagation(); // Prevent the item click event
+                        const id = this.getAttribute('data-id');
+                        editNews(id);
+
+                        // Switch to the create post tab
+                        adminTabs.forEach(t => t.classList.remove('active'));
+                        adminTabContents.forEach(content => content.classList.remove('active'));
+
+                        const createPostTab = document.querySelector('.admin-tab[data-tab="create-post"]');
+                        createPostTab.classList.add('active');
+                        document.getElementById('create-post-tab').classList.add('active');
+
+                        // Update submit button text
+                        submitText.textContent = 'Update Post';
+                    });
+                });
+
+                document.querySelectorAll('.news-list-actions .delete').forEach(button => {
+                    button.addEventListener('click', function(e) {
+                        e.stopPropagation(); // Prevent the item click event
+                        const id = this.getAttribute('data-id');
+                        if (confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
+                            deleteNews(id);
+                        }
+                    });
+                });
+            }
+
+            // Function to edit news
+            function editNews(id) {
+                const newsItem = newsItems.find(item => item.id === id);
+                if (!newsItem) return;
+
+                newsTitleInput.value = newsItem.title;
+                newsCategorySelect.value = newsItem.category || '';
+                newsContentEditor.value = newsItem.content;
+                newsCoverImageInput.value = newsItem.coverImageUrl || '';
+                editIdInput.value = id;
+                submitText.textContent = 'Update Post';
+
+                // Reset gallery inputs
+                while (galleryInputs.children.length > 1) {
+                    galleryInputs.removeChild(galleryInputs.lastChild);
+                }
+
+                // First gallery input
+                const firstGalleryInput = document.querySelector('.gallery-image-url');
+                firstGalleryInput.value = newsItem.galleryImages && newsItem.galleryImages.length > 0 ?
+                    newsItem.galleryImages[0] : '';
+
+                // Add additional gallery inputs if needed
+                if (newsItem.galleryImages && newsItem.galleryImages.length > 1) {
+                    for (let i = 1; i < newsItem.galleryImages.length; i++) {
+                        const newGroup = document.createElement('div');
+                        newGroup.className = 'gallery-input-group';
+                        newGroup.innerHTML = `
+                            <input type="text" class="gallery-image-url" placeholder="Gallery Image URL" value="${newsItem.galleryImages[i]}">
+                            <button type="button" class="remove-gallery-image">Remove</button>
+                        `;
+                        galleryInputs.appendChild(newGroup);
+
+                        // Add event listener to the new remove button
+                        const removeBtn = newGroup.querySelector('.remove-gallery-image');
+                        removeBtn.addEventListener('click', function() {
+                            galleryInputs.removeChild(newGroup);
+                        });
+                    }
+                }
+
+                // Scroll to form
+                newsForm.scrollIntoView({ behavior: 'smooth' });
+            }
+
+            // Function to delete news
+            async function deleteNews(id) {
+                // Find the news item to get its title for the confirmation message
+                const newsItem = newsItems.find(item => item.id === id);
+                if (!newsItem) return;
+
+                // Remove the news item
+                newsItems = newsItems.filter(item => item.id !== id);
+
+                // Save to data manager
+                const success = await window.dataManager.saveNewsItems(newsItems);
+
+                if (success) {
+                    // Update displays
+                    displayNews();
+                    displayAdminNews();
+                    updateDashboard();
+
+                    // Show success message
+                    showAdminMessage(`Post "${newsItem.title}" deleted successfully`, 'success');
+                } else {
+                    // Restore the deleted item since saving failed
+                    newsItems.push(newsItem);
+                    // Sort by date to maintain order
+                    newsItems.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                    showAdminMessage(`Failed to delete post "${newsItem.title}"`, 'error');
+                }
+            }
+
+            // Function to show admin messages
+            function showAdminMessage(message, type) {
+                adminMessage.textContent = message;
+                adminMessage.className = 'admin-message ' + type;
+
+                // Hide message after 3 seconds
+                setTimeout(() => {
+                    adminMessage.className = 'admin-message';
+                }, 3000);
+            }
+
+            // Allow pressing Enter to submit password
+            adminPassword.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    submitPassword.click();
+                }
+            });
+
+            // Close dialogue when clicking outside
+            document.addEventListener('click', function(e) {
+                if (dialogueBox.classList.contains('active') &&
+                    !dialogueBox.contains(e.target) &&
+                    e.target !== fox) {
+                    dialogueBox.classList.remove('active');
+
+                    // Resume running if not hovering
+                    if (!fox.matches(':hover')) {
+                        isRunning = true;
+                        updateFoxPosition();
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

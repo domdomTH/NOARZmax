@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            border: 1px solid #ccc;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        button {
+            padding: 8px 16px;
+            background-color: #4834d4;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background-color: #3a2baa;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+        .result {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+        .success {
+            color: green;
+        }
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>GitHub API Test</h1>
+
+    <div class="container">
+        <h2>Configuration</h2>
+        <div>
+            <label for="username">GitHub Username:</label>
+            <input type="text" id="username" placeholder="Enter your GitHub username">
+        </div>
+        <div>
+            <label for="repo">Repository Name:</label>
+            <input type="text" id="repo" placeholder="Enter repository name">
+        </div>
+        <div>
+            <label for="token">Personal Access Token:</label>
+            <input type="password" id="token" placeholder="Enter your GitHub personal access token">
+        </div>
+        <button id="initialize">Initialize GitHub API</button>
+        <div id="init-result" class="result"></div>
+    </div>
+
+    <div class="container">
+        <h2>Test Operations</h2>
+        <button id="test-get">Test Get File</button>
+        <button id="test-save">Test Save File</button>
+        <button id="test-delete">Test Delete File</button>
+        <div>
+            <label for="test-path">File Path:</label>
+            <input type="text" id="test-path" value="test.json" placeholder="Enter file path">
+        </div>
+        <div>
+            <label for="test-content">File Content:</label>
+            <textarea id="test-content" rows="5" placeholder="Enter file content">{
+  "test": "This is a test file",
+  "timestamp": "2023-04-29T12:00:00Z"
+}</textarea>
+        </div>
+        <div id="test-result" class="result"></div>
+    </div>
+
+    <div class="container">
+        <h2>Save Configuration</h2>
+        <button id="save-config">Save to github-config.js</button>
+        <div id="save-result" class="result"></div>
+    </div>
+
+    <!-- Include GitHub API scripts -->
+    <script src="github-api.js"></script>
+    <script src="github-config.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elements
+            const usernameInput = document.getElementById('username');
+            const repoInput = document.getElementById('repo');
+            const tokenInput = document.getElementById('token');
+            const initButton = document.getElementById('initialize');
+            const initResult = document.getElementById('init-result');
+
+            const testPathInput = document.getElementById('test-path');
+            const testContentInput = document.getElementById('test-content');
+            const testGetButton = document.getElementById('test-get');
+            const testSaveButton = document.getElementById('test-save');
+            const testDeleteButton = document.getElementById('test-delete');
+            const testResult = document.getElementById('test-result');
+
+            const saveConfigButton = document.getElementById('save-config');
+            const saveResult = document.getElementById('save-result');
+
+            // GitHub API instance
+            let githubApi = null;
+
+            // Load config if available
+            if (window.GITHUB_CONFIG) {
+                usernameInput.value = window.GITHUB_CONFIG.username || '';
+                repoInput.value = window.GITHUB_CONFIG.repoName || '';
+                tokenInput.value = window.GITHUB_CONFIG.getToken() || '';
+            }
+
+            // Initialize GitHub API
+            initButton.addEventListener('click', async function() {
+                const username = usernameInput.value.trim();
+                const repo = repoInput.value.trim();
+                const token = tokenInput.value.trim();
+
+                if (!username || !repo || !token) {
+                    initResult.textContent = 'Please fill in all fields';
+                    initResult.className = 'result error';
+                    return;
+                }
+
+                try {
+                    initResult.textContent = 'Initializing...';
+                    initResult.className = 'result';
+
+                    githubApi = new GitHubAPI(token);
+                    const success = await githubApi.initialize(username, repo);
+
+                    if (success) {
+                        initResult.textContent = 'GitHub API initialized successfully!';
+                        initResult.className = 'result success';
+                    } else {
+                        initResult.textContent = 'Failed to initialize GitHub API. Check console for details.';
+                        initResult.className = 'result error';
+                    }
+                } catch (error) {
+                    initResult.textContent = `Error: ${error.message}`;
+                    initResult.className = 'result error';
+                    console.error(error);
+                }
+            });
+
+            // Test Get File
+            testGetButton.addEventListener('click', async function() {
+                if (!githubApi) {
+                    testResult.textContent = 'Please initialize GitHub API first';
+                    testResult.className = 'result error';
+                    return;
+                }
+
+                const path = testPathInput.value.trim();
+
+                if (!path) {
+                    testResult.textContent = 'Please enter a file path';
+                    testResult.className = 'result error';
+                    return;
+                }
+
+                try {
+                    testResult.textContent = 'Getting file...';
+                    testResult.className = 'result';
+
+                    const file = await githubApi.getFile(path);
+
+                    if (file) {
+                        testResult.textContent = `File found:\n${JSON.stringify(file, null, 2)}`;
+                        testContentInput.value = file.content;
+                        testResult.className = 'result success';
+                    } else {
+                        testResult.textContent = `File not found: ${path}`;
+                        testResult.className = 'result';
+                    }
+                } catch (error) {
+                    testResult.textContent = `Error: ${error.message}`;
+                    testResult.className = 'result error';
+                    console.error(error);
+                }
+            });
+
+            // Test Save File
+            testSaveButton.addEventListener('click', async function() {
+                if (!githubApi) {
+                    testResult.textContent = 'Please initialize GitHub API first';
+                    testResult.className = 'result error';
+                    return;
+                }
+
+                const path = testPathInput.value.trim();
+                const content = testContentInput.value.trim();
+
+                if (!path || !content) {
+                    testResult.textContent = 'Please enter a file path and content';
+                    testResult.className = 'result error';
+                    return;
+                }
+
+                try {
+                    testResult.textContent = 'Saving file...';
+                    testResult.className = 'result';
+
+                    const result = await githubApi.saveFile(path, content, 'Test save from API test page');
+
+                    testResult.textContent = `File saved successfully:\n${JSON.stringify(result, null, 2)}`;
+                    testResult.className = 'result success';
+                } catch (error) {
+                    testResult.textContent = `Error: ${error.message}`;
+                    testResult.className = 'result error';
+                    console.error(error);
+                }
+            });
+
+            // Test Delete File
+            testDeleteButton.addEventListener('click', async function() {
+                if (!githubApi) {
+                    testResult.textContent = 'Please initialize GitHub API first';
+                    testResult.className = 'result error';
+                    return;
+                }
+
+                const path = testPathInput.value.trim();
+
+                if (!path) {
+                    testResult.textContent = 'Please enter a file path';
+                    testResult.className = 'result error';
+                    return;
+                }
+
+                try {
+                    testResult.textContent = 'Deleting file...';
+                    testResult.className = 'result';
+
+                    const result = await githubApi.deleteFile(path, 'Test delete from API test page');
+
+                    testResult.textContent = `File deleted successfully:\n${JSON.stringify(result, null, 2)}`;
+                    testResult.className = 'result success';
+                } catch (error) {
+                    testResult.textContent = `Error: ${error.message}`;
+                    testResult.className = 'result error';
+                    console.error(error);
+                }
+            });
+
+            // Save Configuration
+            saveConfigButton.addEventListener('click', async function() {
+                const username = usernameInput.value.trim();
+                const repo = repoInput.value.trim();
+                const token = tokenInput.value.trim();
+
+                if (!username || !repo || !token) {
+                    saveResult.textContent = 'Please fill in all fields';
+                    saveResult.className = 'result error';
+                    return;
+                }
+
+                try {
+                    saveResult.textContent = 'Saving configuration...';
+                    saveResult.className = 'result';
+
+                    const configContent = `/**
+ * GitHub API Configuration
+ * This file contains the configuration for the GitHub API integration
+ *
+ * Instructions:
+ * 1. Create a GitHub Personal Access Token with 'repo' scope
+ *    (https://github.com/settings/tokens)
+ * 2. Create a repository to store your website data
+ * 3. Update the values below with your GitHub username and repository name
+ *
+ * IMPORTANT: The token is stored in sessionStorage for security reasons.
+ * It will be lost when the browser is closed, which is a security feature.
+ * Users will need to re-enter their token when they return to the site.
+ */
+
+const GITHUB_CONFIG = {
+    // Your GitHub username
+    username: '${username}',
+
+    // Repository name where data will be stored
+    repoName: '${repo}',
+
+    // Enable GitHub API integration (set to false to use localStorage instead)
+    enabled: true,
+
+    // Securely get the token from sessionStorage
+    getToken: function() {
+        return sessionStorage.getItem('github_token');
+    },
+
+    // Securely save the token to sessionStorage
+    setToken: function(token) {
+        if (token) {
+            sessionStorage.setItem('github_token', token);
+            return true;
+        }
+        return false;
+    },
+
+    // Clear the token from sessionStorage
+    clearToken: function() {
+        sessionStorage.removeItem('github_token');
+    }
+};
+
+// Export the configuration
+window.GITHUB_CONFIG = GITHUB_CONFIG;`;
+
+                    // Save the token to sessionStorage
+                    window.GITHUB_CONFIG.setToken(token);
+
+                    // Use fetch to save the file
+                    const response = await fetch('github-config.js', {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/javascript'
+                        },
+                        body: configContent
+                    });
+
+                    if (response.ok) {
+                        saveResult.textContent = 'Configuration saved successfully! Refresh the page to apply changes.';
+                        saveResult.className = 'result success';
+                    } else {
+                        throw new Error(`Failed to save configuration: ${response.status} ${response.statusText}`);
+                    }
+                } catch (error) {
+                    saveResult.textContent = `Error: ${error.message}. You may need to manually update the github-config.js file.`;
+                    saveResult.className = 'result error';
+                    console.error(error);
+
+                    // Show the configuration to copy manually
+                    saveResult.textContent += `\n\nCopy this configuration to github-config.js:\n\n${configContent}`;
+                }
+            });
+        });
+    </script>
+</body>
+</html>
